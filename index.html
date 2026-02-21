@@ -80,7 +80,7 @@
                 <span>Lab Active</span>
             </div>
             <div id="progressBadge" class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">
-                0/6 Tasks
+                0/5 Tasks
             </div>
         </div>
     </header>
@@ -211,12 +211,6 @@
             <!-- Video Section -->
             <div class="border-b border-gray-200 no-print">
                 <div class="aspect-video bg-gray-900 relative">
-                    <!-- ============================================================
-                         TO ADD YOUR VIDEO:
-                         1. Upload your video to YouTube (can be "Unlisted")
-                         2. Get the video ID from the URL (after v=)
-                         3. Replace "u4ZoJKF_VuA" below with your video ID
-                         ============================================================ -->
                     <iframe 
                         class="w-full h-full"
                         src="https://www.youtube.com/embed/u4ZoJKF_VuA"
@@ -370,7 +364,7 @@
                             </div>
                         </div>
 
-                        <!-- Task 2: Research -->
+                        <!-- Task 2: Start 3 Whys + Embedded Research -->
                         <div class="task-item border border-gray-200 rounded-lg p-4 transition" id="task2">
                             <div class="flex items-start gap-3">
                                 <button onclick="toggleTask(2)" class="w-6 h-6 border-2 border-gray-300 rounded flex items-center justify-center flex-shrink-0 mt-0.5 hover:border-purple-400 transition" id="check2">
@@ -379,20 +373,23 @@
                                     </svg>
                                 </button>
                                 <div class="flex-1">
-                                    <h4 class="font-medium text-gray-800 task-text">Step 2: Research the Problem</h4>
-                                    <p class="text-sm text-gray-600 mt-1">Copy this prompt to your AI assistant (replace [YOUR PROBLEM] with your selection):</p>
+                                    <h4 class="font-medium text-gray-800 task-text">Step 2: Start the 3 Whys (with a quick research warm-up)</h4>
+                                    <p class="text-sm text-gray-600 mt-1">
+                                        Copy this prompt to your AI assistant (replace [YOUR PROBLEM] with your selection). The AI will first ask a few context questions,
+                                        give you a brief “research snapshot,” then run the 3 Whys.
+                                    </p>
                                     <div class="bg-gray-100 p-3 rounded mt-2 text-sm font-mono relative group">
-                                        <button onclick="copyPrompt('prompt1', this)" class="absolute top-2 right-2 text-xs bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 transition">📋 Copy</button>
-                                        <span id="prompt1">What are the most common root causes of [YOUR PROBLEM]? Include statistics, real company examples, and industry benchmarks.</span>
+                                        <button onclick="copyPrompt('prompt2', this)" class="absolute top-2 right-2 text-xs bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 transition">📋 Copy</button>
+                                        <span id="prompt2">Act as my Root Cause Coach. My business problem is: [YOUR PROBLEM]. First, ask me 3 quick clarifying questions (context, who is affected, where it shows up). After I answer, give a short “Research Snapshot” with: (1) 2–3 plausible contributing factors (as hypotheses, not final answers) and (2) 2 metrics/benchmarks to check. Do NOT decide the root cause yet. Then run the 3 Whys with me: ask “Why?” after each answer, push back if I’m too surface-level, and stop after the 3rd Why. Finally, summarize the most likely root cause and 1 practical action I could test next week.</span>
                                     </div>
                                     
-                                    <label class="block text-sm font-medium text-gray-700 mt-4 mb-1">Key insights from your research:</label>
-                                    <textarea id="researchInsights" onchange="saveAnswer('researchInsights', this.value)" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="What did the AI tell you about common causes of this problem? Any surprising statistics?"></textarea>
+                                    <label class="block text-sm font-medium text-gray-700 mt-4 mb-1">Notes from your AI “Research Snapshot” (optional but recommended):</label>
+                                    <textarea id="researchInsights" onchange="saveAnswer('researchInsights', this.value)" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="What context questions did the AI ask? What hypotheses + benchmarks did it suggest?"></textarea>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Task 3: Start 3 Whys -->
+                        <!-- Task 3: Document 3 Whys -->
                         <div class="task-item border border-gray-200 rounded-lg p-4 transition" id="task3">
                             <div class="flex items-start gap-3">
                                 <button onclick="toggleTask(3)" class="w-6 h-6 border-2 border-gray-300 rounded flex items-center justify-center flex-shrink-0 mt-0.5 hover:border-purple-400 transition" id="check3">
@@ -401,26 +398,7 @@
                                     </svg>
                                 </button>
                                 <div class="flex-1">
-                                    <h4 class="font-medium text-gray-800 task-text">Step 3: Start the 3 Whys</h4>
-                                    <p class="text-sm text-gray-600 mt-1">Use this prompt to begin your 3 Whys analysis:</p>
-                                    <div class="bg-gray-100 p-3 rounded mt-2 text-sm font-mono relative group">
-                                        <button onclick="copyPrompt('prompt2', this)" class="absolute top-2 right-2 text-xs bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 transition">📋 Copy</button>
-                                        <span id="prompt2">Help me practice the 3 Whys technique to find the root cause. My problem is: [YOUR PROBLEM]. Ask me "Why?" after each answer I give, and push back if my answer is too surface-level. Stop after the 3rd "Why" and summarize the most likely root cause.</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Task 4: Document 3 Whys -->
-                        <div class="task-item border border-gray-200 rounded-lg p-4 transition" id="task4">
-                            <div class="flex items-start gap-3">
-                                <button onclick="toggleTask(4)" class="w-6 h-6 border-2 border-gray-300 rounded flex items-center justify-center flex-shrink-0 mt-0.5 hover:border-purple-400 transition" id="check4">
-                                    <svg class="w-4 h-4 text-green-600 checkmark hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-                                    </svg>
-                                </button>
-                                <div class="flex-1">
-                                    <h4 class="font-medium text-gray-800 task-text">Step 4: Document Your 3 Whys</h4>
+                                    <h4 class="font-medium text-gray-800 task-text">Step 3: Document Your 3 Whys</h4>
                                     <p class="text-sm text-gray-600 mt-1 mb-3">Record each "Why" and your answer from your AI conversation:</p>
                                     
                                     <div class="space-y-3">
@@ -441,16 +419,16 @@
                             </div>
                         </div>
 
-                        <!-- Task 5: Root Cause -->
-                        <div class="task-item border border-gray-200 rounded-lg p-4 transition" id="task5">
+                        <!-- Task 4: Root Cause -->
+                        <div class="task-item border border-gray-200 rounded-lg p-4 transition" id="task4">
                             <div class="flex items-start gap-3">
-                                <button onclick="toggleTask(5)" class="w-6 h-6 border-2 border-gray-300 rounded flex items-center justify-center flex-shrink-0 mt-0.5 hover:border-purple-400 transition" id="check5">
+                                <button onclick="toggleTask(4)" class="w-6 h-6 border-2 border-gray-300 rounded flex items-center justify-center flex-shrink-0 mt-0.5 hover:border-purple-400 transition" id="check4">
                                     <svg class="w-4 h-4 text-green-600 checkmark hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
                                     </svg>
                                 </button>
                                 <div class="flex-1">
-                                    <h4 class="font-medium text-gray-800 task-text">Step 5: Identify the Root Cause</h4>
+                                    <h4 class="font-medium text-gray-800 task-text">Step 4: Identify the Root Cause</h4>
                                     <p class="text-sm text-gray-600 mt-1 mb-3">Based on your 3 Whys analysis, what is the ROOT CAUSE?</p>
                                     
                                     <div class="bg-green-50 border-2 border-green-200 rounded-lg p-3">
@@ -465,16 +443,16 @@
                             </div>
                         </div>
 
-                        <!-- Task 6: Reflection -->
-                        <div class="task-item border border-gray-200 rounded-lg p-4 transition" id="task6">
+                        <!-- Task 5: Reflection -->
+                        <div class="task-item border border-gray-200 rounded-lg p-4 transition" id="task5">
                             <div class="flex items-start gap-3">
-                                <button onclick="toggleTask(6)" class="w-6 h-6 border-2 border-gray-300 rounded flex items-center justify-center flex-shrink-0 mt-0.5 hover:border-purple-400 transition" id="check6">
+                                <button onclick="toggleTask(5)" class="w-6 h-6 border-2 border-gray-300 rounded flex items-center justify-center flex-shrink-0 mt-0.5 hover:border-purple-400 transition" id="check5">
                                     <svg class="w-4 h-4 text-green-600 checkmark hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
                                     </svg>
                                 </button>
                                 <div class="flex-1">
-                                    <h4 class="font-medium text-gray-800 task-text">Step 6: Reflection</h4>
+                                    <h4 class="font-medium text-gray-800 task-text">Step 5: Reflection</h4>
                                     
                                     <label class="block text-sm font-medium text-gray-700 mt-3 mb-1">Which AI tool did you use?</label>
                                     <select id="aiToolUsed" onchange="saveAnswer('aiToolUsed', this.value)" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
@@ -504,7 +482,7 @@
                     <ol class="text-sm text-amber-700 space-y-2">
                         <li class="flex gap-2">
                             <span class="font-bold">1.</span>
-                            <span>Complete all 6 tasks above and fill in your answers</span>
+                            <span>Complete all 5 tasks above and fill in your answers</span>
                         </li>
                         <li class="flex gap-2">
                             <span class="font-bold">2.</span>
@@ -561,6 +539,9 @@
     </div>
 
     <script>
+        // ====== CONFIG ======
+        const TOTAL_TASKS = 5;
+
         // State management
         let completedTasks = {};
         let answers = {};
@@ -646,7 +627,7 @@
                     }
                 });
                 
-                // Restore task states
+                // Restore task states (only if elements exist)
                 Object.keys(completedTasks).forEach(taskId => {
                     if (completedTasks[taskId]) {
                         updateTaskUI(parseInt(taskId), true);
@@ -726,8 +707,11 @@
         function updateTaskUI(taskId, completed) {
             const taskItem = document.getElementById(`task${taskId}`);
             const checkbox = document.getElementById(`check${taskId}`);
+            if (!taskItem || !checkbox) return; // safety if old state has extra keys
+
             const checkIcon = checkbox.querySelector('svg');
-            
+            if (!checkIcon) return;
+
             if (completed) {
                 taskItem.classList.add('completed');
                 checkbox.classList.remove('border-gray-300');
@@ -742,11 +726,15 @@
         }
         
         function updateProgress() {
-            const completed = Object.values(completedTasks).filter(v => v).length;
+            let completed = 0;
+            for (let i = 1; i <= TOTAL_TASKS; i++) {
+                if (completedTasks[i]) completed++;
+            }
+
             const badge = document.getElementById('progressBadge');
-            badge.textContent = `${completed}/6 Tasks`;
+            badge.textContent = `${completed}/${TOTAL_TASKS} Tasks`;
             
-            if (completed === 6) {
+            if (completed === TOTAL_TASKS) {
                 badge.classList.remove('bg-purple-100', 'text-purple-700');
                 badge.classList.add('bg-green-100', 'text-green-700');
             } else {
@@ -821,7 +809,8 @@
             const rootCause = document.getElementById('rootCause').value || 'Not identified';
             const aiTool = document.getElementById('aiToolUsed').value || selectedAI || 'Not specified';
             const reflection = document.getElementById('reflection').value || 'Not provided';
-            const completedCount = Object.values(completedTasks).filter(v => v).length;
+            let completedCount = 0;
+            for (let i = 1; i <= TOTAL_TASKS; i++) if (completedTasks[i]) completedCount++;
             const timestamp = new Date().toLocaleString();
             
             if (!document.getElementById('problemChoice').value) {
@@ -845,7 +834,7 @@
 LAB COMPLETION
 ───────────────────────────────────────────────────────────────────
 Date Completed:  ${timestamp}
-Tasks Completed: ${completedCount}/6
+Tasks Completed: ${completedCount}/${TOTAL_TASKS}
 AI Tool Used:    ${aiTool}
 
 
@@ -856,7 +845,7 @@ Category: ${problemCategory}
 Problem: ${problem}
 
 
-RESEARCH INSIGHTS
+RESEARCH SNAPSHOT NOTES
 ───────────────────────────────────────────────────────────────────
 ${research}
 
@@ -905,7 +894,7 @@ University of Evansville | Week 7 Lab
             
             showToast('Lab report downloaded! Now submit to Blackboard.');
             
-            for (let i = 1; i <= 6; i++) {
+            for (let i = 1; i <= TOTAL_TASKS; i++) {
                 completedTasks[i] = true;
                 updateTaskUI(i, true);
             }
@@ -920,4 +909,3 @@ University of Evansville | Week 7 Lab
     </script>
 </body>
 </html>
-```
