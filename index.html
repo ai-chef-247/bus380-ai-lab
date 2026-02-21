@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BUS 380 AI Lab | Week 7: Root Cause Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        .lab-container { height: calc(100vh - 60px); }
+        .instructions-panel { overflow-y: auto; }
+        .instructions-panel::-webkit-scrollbar { width: 6px; }
+        .instructions-panel::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .task-item.completed { background: #f0fdf4; border-color: #86efac; }
+        .task-item.completed .task-text { text-decoration: line-through; color: #6b7280; }
+        .chat-frame { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .status-dot { animation: pulse 2s infinite; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="bg-purple-600 text-white px-3 py-1 rounded-lg font-semibold text-sm">BUS 380</div>
+            <div>
+                <h1 class="font-semibold text-gray-800">Week 7 Lab: Root Cause Analysis</h1>
+                <p class="text-xs text-gray-500">Generative AI for Business Students</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2 text-sm text-gray-600">
+                <span class="status-dot w-2 h-2 bg-green-500 rounded-full"></span>
+                <span>Lab Active</span>
+            </div>
+            <div id="progressBadge" class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">
+                0/6 Tasks
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Lab Container -->
+    <div class="lab-container flex">
+        <!-- Left Panel: AI Chat -->
+        <div class="w-1/2 bg-gray-900 flex flex-col">
+            <!-- Chat Header -->
+            <div class="bg-gray-800 px-4 py-3 flex items-center justify-between border-b border-gray-700">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-white font-medium">AI Assistant</h2>
+                        <p class="text-gray-400 text-xs">Powered by HuggingChat</p>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="openInNewTab('https://hf.co/chat/')" class="text-gray-400 hover:text-white text-sm px-3 py-1 rounded border border-gray-600 hover:border-gray-500 transition">
+                        Open Full Screen ↗
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Embedded Chat -->
+            <div class="flex-1 relative">
+                <iframe 
+                    id="chatFrame"
+                    src="https://hf.co/chat/"
+                    class="w-full h-full border-0"
+                    allow="microphone"
+                ></iframe>
+                
+                <!-- Fallback/Alternative Options -->
+                <div id="chatFallback" class="hidden absolute inset-0 bg-gray-900 flex flex-col items-center justify-center p-8 text-center">
+                    <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mb-4">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-white text-xl font-semibold mb-2">Choose Your AI Assistant</h3>
+                    <p class="text-gray-400 mb-6 max-w-md">Open one of these free AI tools in a new tab to complete the lab tasks</p>
+                    <div class="flex flex-col gap-3 w-full max-w-xs">
+                        <button onclick="openInNewTab('https://gemini.google.com')" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition flex items-center justify-center gap-2">
+                            <span>🔷</span> Open Gemini
+                        </button>
+                        <button onclick="openInNewTab('https://chat.openai.com')" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-medium transition flex items-center justify-center gap-2">
+                            <span>💚</span> Open ChatGPT
+                        </button>
+                        <button onclick="openInNewTab('https://claude.ai')" class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 px-4 rounded-lg font-medium transition flex items-center justify-center gap-2">
+                            <span>🧡</span> Open Claude
+                        </button>
+                        <button onclick="openInNewTab('https://hf.co/chat/')" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-3 px-4 rounded-lg font-medium transition flex items-center justify-center gap-2">
+                            <span>🤗</span> Open HuggingChat
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Instructions -->
+        <div class="w-1/2 bg-white instructions-panel">
+            <!-- Video Section -->
+            <div class="border-b border-gray-200">
+                <div class="aspect-video bg-gray-900 relative">
+                    <!-- Replace with your actual video embed -->
+                    <iframe 
+                        class="w-full h-full"
+                        src="https://www.youtube.com/embed/u4ZoJKF_VuA"
+                        title="Simon Sinek - Start with Why"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen
+                    ></iframe>
+                </div>
+                <div class="p-4 bg-gray-50">
+                    <h3 class="font-semibold text-gray-800">📹 Start with Why — Simon Sinek</h3>
+                    <p class="text-sm text-gray-600 mt-1">Watch the first 5 minutes, then complete the lab tasks below.</p>
+                </div>
+            </div>
+
+            <!-- Instructions Content -->
+            <div class="p-6">
+                <!-- Lab Overview -->
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-2">🧪 Lab: Root Cause Analysis with AI</h2>
+                    <p class="text-gray-600">Use the AI assistant to investigate a real business problem and find the root cause using the 5 Whys technique.</p>
+                    <div class="mt-3 flex gap-4 text-sm">
+                        <span class="text-gray-500">⏱️ ~45 minutes</span>
+                        <span class="text-gray-500">📊 35 points</span>
+                    </div>
+                </div>
+
+                <!-- Task List -->
+                <div class="mb-6">
+                    <h3 class="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                        <span>📋</span> Lab Tasks
+                    </h3>
+                    
+                    <div class="space-y-3" id="taskList">
+                        <!-- Task 1 -->
+                        <div class="task-item border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-purple-300 transition" onclick="toggleTask(1)">
+                            <div class="flex items-start gap-3">
+                                <div id="check1" class="w-6 h-6 border-2 border-gray-300 rounded flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <svg class="w-4 h-4 text-green-600 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-medium text-gray-800 task-text">Step 1: Choose a Business Problem</h4>
+                                    <p class="text-sm text-gray-600 mt-1">Select one problem to investigate:</p>
+                                    <ul class="text-sm text-gray-500 mt-2 space-y-1 ml-4">
+                                        <li>• E-commerce returns are 25% (2x industry average)</li>
+                                        <li>• Support tickets doubled, satisfaction dropping</li>
+                                        <li>• Social followers growing, engagement flat</li>
+                                        <li>• Employee onboarding takes 3 weeks</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Task 2 -->
+                        <div class="task-item border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-purple-300 transition" onclick="toggleTask(2)">
+                            <div class="flex items-start gap-3">
+                                <div id="check2" class="w-6 h-6 border-2 border-gray-300 rounded flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <svg class="w-4 h-4 text-green-600 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-medium text-gray-800 task-text">Step 2: Research with AI</h4>
+                                    <p class="text-sm text-gray-600 mt-1">Copy this prompt to the AI assistant:</p>
+                                    <div class="bg-gray-100 p-3 rounded mt-2 text-sm font-mono relative group">
+                                        <button onclick="event.stopPropagation(); copyPrompt('prompt1')" class="absolute top-2 right-2 text-xs bg-purple-600 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition">Copy</button>
+                                        <span id="prompt1">What are the most common root causes of [YOUR PROBLEM]? Include statistics and real examples.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Task 3 -->
+                        <div class="task-item border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-purple-300 transition" onclick="toggleTask(3)">
+                            <div class="flex items-start gap-3">
+                                <div id="check3" class="w-6 h-6 border-2 border-gray-300 rounded flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <svg class="w-4 h-4 text-green-600 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-medium text-gray-800 task-text">Step 3: Start the 5 Whys</h4>
+                                    <p class="text-sm text-gray-600 mt-1">Use this prompt to begin your analysis:</p>
+                                    <div class="bg-gray-100 p-3 rounded mt-2 text-sm font-mono relative group">
+                                        <button onclick="event.stopPropagation(); copyPrompt('prompt2')" class="absolute top-2 right-2 text-xs bg-purple-600 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition">Copy</button>
+                                        <span id="prompt2">Help me practice the 5 Whys technique. My problem is [YOUR PROBLEM]. Ask me "Why?" after each answer I give, and push back if I'm being too surface-level. Let's start.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Task 4 -->
+                        <div class="task-item border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-purple-300 transition" onclick="toggleTask(4)">
+                            <div class="flex items-start gap-3">
+                                <div id="check4" class="w-6 h-6 border-2 border-gray-300 rounded flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <svg class="w-4 h-4 text-green-600 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-medium text-gray-800 task-text">Step 4: Complete All 5 Whys</h4>
+                                    <p class="text-sm text-gray-600 mt-1">Work through the conversation until you've asked "Why?" at least 5 times and identified a root cause.</p>
+                                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 mt-2 text-sm">
+                                        💡 <strong>Tip:</strong> The root cause is something actionable — something you can actually fix!
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Task 5 -->
+                        <div class="task-item border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-purple-300 transition" onclick="toggleTask(5)">
+                            <div class="flex items-start gap-3">
+                                <div id="check5" class="w-6 h-6 border-2 border-gray-300 rounded flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <svg class="w-4 h-4 text-green-600 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-medium text-gray-800 task-text">Step 5: Document Your Root Cause</h4>
+                                    <p class="text-sm text-gray-600 mt-1">Ask the AI to help you summarize:</p>
+                                    <div class="bg-gray-100 p-3 rounded mt-2 text-sm font-mono relative group">
+                                        <button onclick="event.stopPropagation(); copyPrompt('prompt3')" class="absolute top-2 right-2 text-xs bg-purple-600 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition">Copy</button>
+                                        <span id="prompt3">Summarize our 5 Whys analysis in a table format showing each Why question and answer, then state the root cause we identified.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Task 6 -->
+                        <div class="task-item border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-purple-300 transition" onclick="toggleTask(6)">
+                            <div class="flex items-start gap-3">
+                                <div id="check6" class="w-6 h-6 border-2 border-gray-300 rounded flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <svg class="w-4 h-4 text-green-600 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-medium text-gray-800 task-text">Step 6: Submit Your Work</h4>
+                                    <p class="text-sm text-gray-600 mt-1">Complete the submission form below with your findings.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submission Form -->
+                <div class="border-t border-gray-200 pt-6">
+                    <h3 class="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                        <span>📤</span> Submit Your Work
+                    </h3>
+                    
+                    <form id="submissionForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Your Name *</label>
+                            <input type="text" name="studentName" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="Enter your full name">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                            <input type="email" name="studentEmail" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="your.email@university.edu">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Which problem did you investigate? *</label>
+                            <select name="problemChoice" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                <option value="">Select a problem...</option>
+                                <option value="returns">E-commerce returns (25%)</option>
+                                <option value="support">Support tickets doubled</option>
+                                <option value="engagement">Social engagement flat</option>
+                                <option value="onboarding">Onboarding takes 3 weeks</option>
+                                <option value="other">Other (specify below)</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">What ROOT CAUSE did you identify? *</label>
+                            <textarea name="rootCause" required rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="Describe the root cause you discovered through the 5 Whys..."></textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Paste your 5 Whys summary from the AI *</label>
+                            <textarea name="fiveWhysSummary" required rows="5" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="Copy and paste the summary table the AI generated for you..."></textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Which AI tool did you use?</label>
+                            <select name="aiTool" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                <option value="gemini">Gemini</option>
+                                <option value="chatgpt">ChatGPT</option>
+                                <option value="claude">Claude</option>
+                                <option value="huggingchat">HuggingChat</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Reflection: How did the AI help your analysis?</label>
+                            <textarea name="reflection" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="What did you learn? How did AI help you think deeper?"></textarea>
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 px-4 rounded-lg font-semibold transition flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Submit Lab Work
+                        </button>
+                    </form>
+                    
+                    <!-- Success Message (hidden by default) -->
+                    <div id="successMessage" class="hidden mt-4 bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                        <div class="text-green-600 text-4xl mb-2">🎉</div>
+                        <h4 class="font-semibold text-green-800">Lab Submitted Successfully!</h4>
+                        <p class="text-sm text-green-600 mt-1">Your work has been recorded. Great job!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300">
+        <span id="toastMessage">Copied to clipboard!</span>
+    </div>
+
+    <script>
+        // Task completion state
+        let completedTasks = JSON.parse(localStorage.getItem('bus380_week7_tasks') || '{}');
+        
+        // Initialize task states on load
+        document.addEventListener('DOMContentLoaded', () => {
+            Object.keys(completedTasks).forEach(taskId => {
+                if (completedTasks[taskId]) {
+                    updateTaskUI(parseInt(taskId), true);
+                }
+            });
+            updateProgress();
+            
+            // Check if chat iframe loads, show fallback if not
+            const chatFrame = document.getElementById('chatFrame');
+            chatFrame.onerror = () => {
+                document.getElementById('chatFallback').classList.remove('hidden');
+            };
+            
+            // Timeout fallback check
+            setTimeout(() => {
+                try {
+                    // If we can't access the iframe content, show fallback
+                    if (!chatFrame.contentWindow.document) {
+                        document.getElementById('chatFallback').classList.remove('hidden');
+                    }
+                } catch(e) {
+                    // Cross-origin error means it loaded, which is fine
+                }
+            }, 3000);
+        });
+        
+        function toggleTask(taskId) {
+            completedTasks[taskId] = !completedTasks[taskId];
+            localStorage.setItem('bus380_week7_tasks', JSON.stringify(completedTasks));
+            updateTaskUI(taskId, completedTasks[taskId]);
+            updateProgress();
+        }
+        
+        function updateTaskUI(taskId, completed) {
+            const taskItem = document.querySelectorAll('.task-item')[taskId - 1];
+            const checkbox = document.getElementById(`check${taskId}`);
+            const checkIcon = checkbox.querySelector('svg');
+            
+            if (completed) {
+                taskItem.classList.add('completed');
+                checkbox.classList.remove('border-gray-300');
+                checkbox.classList.add('border-green-500', 'bg-green-500');
+                checkIcon.classList.remove('hidden');
+            } else {
+                taskItem.classList.remove('completed');
+                checkbox.classList.add('border-gray-300');
+                checkbox.classList.remove('border-green-500', 'bg-green-500');
+                checkIcon.classList.add('hidden');
+            }
+        }
+        
+        function updateProgress() {
+            const completed = Object.values(completedTasks).filter(v => v).length;
+            document.getElementById('progressBadge').textContent = `${completed}/6 Tasks`;
+            
+            if (completed === 6) {
+                document.getElementById('progressBadge').classList.remove('bg-purple-100', 'text-purple-700');
+                document.getElementById('progressBadge').classList.add('bg-green-100', 'text-green-700');
+            } else {
+                document.getElementById('progressBadge').classList.add('bg-purple-100', 'text-purple-700');
+                document.getElementById('progressBadge').classList.remove('bg-green-100', 'text-green-700');
+            }
+        }
+        
+        function copyPrompt(promptId) {
+            const promptText = document.getElementById(promptId).textContent;
+            navigator.clipboard.writeText(promptText);
+            showToast('Copied to clipboard!');
+        }
+        
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2000);
+        }
+        
+        function openInNewTab(url) {
+            window.open(url, '_blank');
+        }
+        
+        // Form submission
+        document.getElementById('submissionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            data.timestamp = new Date().toISOString();
+            data.completedTasks = Object.values(completedTasks).filter(v => v).length;
+            
+            // Log to console (for testing)
+            console.log('Lab Submission:', data);
+            
+            // In production, send to Google Sheets via Google Forms or a webhook
+            // Example: await fetch('YOUR_GOOGLE_FORM_URL', { method: 'POST', body: formData });
+            
+            // For now, save to localStorage and show success
+            const submissions = JSON.parse(localStorage.getItem('bus380_submissions') || '[]');
+            submissions.push(data);
+            localStorage.setItem('bus380_submissions', JSON.stringify(submissions));
+            
+            // Show success message
+            document.getElementById('submissionForm').classList.add('hidden');
+            document.getElementById('successMessage').classList.remove('hidden');
+            
+            // Mark task 6 as complete
+            completedTasks[6] = true;
+            localStorage.setItem('bus380_week7_tasks', JSON.stringify(completedTasks));
+            updateTaskUI(6, true);
+            updateProgress();
+            
+            showToast('Lab submitted successfully!');
+        });
+        
+        // Reset function (for testing)
+        function resetLab() {
+            localStorage.removeItem('bus380_week7_tasks');
+            localStorage.removeItem('bus380_submissions');
+            location.reload();
+        }
+    </script>
+</body>
+</html>
