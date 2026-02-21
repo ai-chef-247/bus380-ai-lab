@@ -1,3 +1,13 @@
+Here’s your **same code**, with ONLY the requested updates:
+
+1. **Course Password pop-up** (password = `Evansville`)
+2. Removed the **~45 minutes / 35 points** line
+3. Changed **5 Whys → 3 Whys** everywhere + removed Why 4/5 fields + updated download report
+4. Removed the **Submit on Blackboard** button (Download button now spans full width)
+
+> Note: This “password” is **client-side** (students could view-source it). It’s a simple gate, not true security.
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,21 +16,6 @@
     <title>BUS 380 AI Lab | Week 7: Root Cause Analysis</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <script>
-        const COURSE_PASSWORD = "Evansville";
-        let accessGranted = false;
-        
-        // Simple check before the page fully renders
-        let input = prompt("Welcome to BUS 380. Please enter the Course Password to access this lab:");
-        
-        if (input !== COURSE_PASSWORD) {
-            alert("Incorrect password. Access denied.");
-            document.write('<div style="height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: sans-serif; background: #f3f4f6; color: #374151;"><h1>🔒 Access Denied</h1><p>Please refresh the page and enter the correct password provided in Blackboard.</p></div>');
-            window.stop(); 
-        }
-    </script>
-
     <style>
         * { font-family: 'Inter', sans-serif; }
         .lab-container { height: calc(100vh - 60px); }
@@ -29,21 +24,58 @@
         .instructions-panel::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         .task-item.completed { background: #f0fdf4; border-color: #86efac; }
         .task-item.completed .task-text { color: #166534; }
+        .task-item.completed .checkmark { display: flex; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         .status-dot { animation: pulse 2s infinite; }
         .ai-btn { transition: all 0.2s; }
         .ai-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        .problem-card { transition: all 0.2s; border-width: 2px; }
+        .problem-card { transition: all 0.2s; }
+        .problem-card:hover { border-color: #a855f7; }
         .problem-card.selected { border-color: #9333ea; background-color: #faf5ff; }
         
+        /* Brand-specific gradients */
         .gemini-gradient { background: linear-gradient(135deg, #4285F4 0%, #EA4335 25%, #FBBC05 50%, #34A853 75%, #4285F4 100%); }
         .chatgpt-gradient { background: linear-gradient(135deg, #10a37f 0%, #1a7f64 100%); }
         .claude-gradient { background: linear-gradient(135deg, #D97757 0%, #C45A3B 100%); }
+        .perplexity-gradient { background: linear-gradient(135deg, #20808D 0%, #1a6b75 100%); }
+        .copilot-gradient { background: linear-gradient(135deg, #0078D4 0%, #00BCF2 50%, #7FBA00 100%); }
+        .grok-gradient { background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%); }
         
-        @media print { .no-print { display: none !important; } }
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+        }
     </style>
 </head>
 <body class="bg-gray-100">
+
+    <!-- Course Password Modal (Simple Gate) -->
+    <div id="passwordModal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] px-4">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-gray-200 p-6">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 bg-purple-600 text-white rounded-xl flex items-center justify-center font-bold">UE</div>
+                <div>
+                    <h2 class="text-lg font-bold text-gray-800">Course Access</h2>
+                    <p class="text-sm text-gray-500">Enter the course password to open this lab.</p>
+                </div>
+            </div>
+
+            <label class="block text-sm font-medium text-gray-700 mt-4 mb-1">Course Password</label>
+            <input id="coursePasswordInput" type="password" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="Enter password" />
+
+            <p id="passwordError" class="hidden text-sm text-red-600 mt-2">Incorrect password. Please try again.</p>
+
+            <button onclick="checkCoursePassword()" class="w-full mt-4 bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-lg font-semibold transition">
+                Unlock Lab
+            </button>
+
+            <p class="text-xs text-gray-400 mt-3">
+                If you don’t have the password, contact your instructor.
+            </p>
+        </div>
+    </div>
+
+    <!-- Header -->
     <header class="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between no-print">
         <div class="flex items-center gap-3">
             <div class="bg-purple-600 text-white px-3 py-1 rounded-lg font-semibold text-sm">BUS 380</div>
@@ -63,179 +95,839 @@
         </div>
     </header>
 
+    <!-- Main Lab Container -->
     <div class="lab-container flex">
+        <!-- Left Panel: AI Tools -->
         <div class="w-1/2 bg-gray-900 flex flex-col no-print">
+            <!-- Chat Header -->
             <div class="bg-gray-800 px-4 py-3 border-b border-gray-700">
-                <h2 class="text-white font-medium">AI Assistant</h2>
-                <p class="text-gray-400 text-xs">Open a tool to begin your work</p>
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-white font-medium">AI Assistant</h2>
+                        <p class="text-gray-400 text-xs">Choose your preferred AI tool</p>
+                    </div>
+                </div>
             </div>
             
+            <!-- AI Tool Selection Panel -->
             <div class="flex-1 flex flex-col items-center justify-center p-6">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-white text-xl font-bold mb-2">Choose Your AI Assistant</h3>
+                    <p class="text-gray-400 text-sm max-w-md">Click to open an AI tool in a new tab. Keep this lab open to follow instructions.</p>
+                </div>
+                
+                <!-- 6 AI Tools Grid -->
                 <div class="grid grid-cols-3 gap-3 w-full max-w-lg">
-                    <button onclick="openAI('https://gemini.google.com', 'Gemini')" class="ai-btn bg-gray-800 border border-gray-700 hover:border-blue-500 text-white py-4 px-3 rounded-xl flex flex-col items-center gap-2">
-                        <div class="w-10 h-10 gemini-gradient rounded-xl flex items-center justify-center font-bold">G</div>
-                        <span class="text-sm">Gemini</span>
+                    <!-- Gemini -->
+                    <button onclick="openAI('https://gemini.google.com', 'Gemini')" class="ai-btn bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-blue-500 text-white py-4 px-3 rounded-xl font-medium flex flex-col items-center gap-2 transition-all">
+                        <div class="w-10 h-10 gemini-gradient rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                            </svg>
+                        </div>
+                        <span class="font-semibold text-sm">Gemini</span>
+                        <span class="text-xs text-gray-400">Google</span>
                     </button>
-                    <button onclick="openAI('https://chat.openai.com', 'ChatGPT')" class="ai-btn bg-gray-800 border border-gray-700 hover:border-green-500 text-white py-4 px-3 rounded-xl flex flex-col items-center gap-2">
-                        <div class="w-10 h-10 chatgpt-gradient rounded-xl flex items-center justify-center font-bold">C</div>
-                        <span class="text-sm">ChatGPT</span>
+                    
+                    <!-- ChatGPT -->
+                    <button onclick="openAI('https://chat.openai.com', 'ChatGPT')" class="ai-btn bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-green-500 text-white py-4 px-3 rounded-xl font-medium flex flex-col items-center gap-2 transition-all">
+                        <div class="w-10 h-10 chatgpt-gradient rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364l2.0201-1.1638a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/>
+                            </svg>
+                        </div>
+                        <span class="font-semibold text-sm">ChatGPT</span>
+                        <span class="text-xs text-gray-400">OpenAI</span>
                     </button>
-                    <button onclick="openAI('https://claude.ai', 'Claude')" class="ai-btn bg-gray-800 border border-gray-700 hover:border-orange-500 text-white py-4 px-3 rounded-xl flex flex-col items-center gap-2">
-                        <div class="w-10 h-10 claude-gradient rounded-xl flex items-center justify-center font-bold">A</div>
-                        <span class="text-sm">Claude</span>
+                    
+                    <!-- Claude -->
+                    <button onclick="openAI('https://claude.ai', 'Claude')" class="ai-btn bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-orange-500 text-white py-4 px-3 rounded-xl font-medium flex flex-col items-center gap-2 transition-all">
+                        <div class="w-10 h-10 claude-gradient rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M4.709 15.955l4.72-2.647.08-.23-.08-.128H4.986v-.79h6.037v.79l-1.065.357-4.081 2.418-.168.185.168.186 4.081 2.418 1.065.356v.79H4.986v-.79h4.444l.08-.127-.08-.23-4.72-2.647-.277-.455.277-.456zm8.266-8.118v.79h4.444l.08.127-.08.23-4.721 2.647-.276.455.276.456 4.72 2.647.08.23-.08.127h-4.443v.79h6.037v-.79l-1.065-.356-4.081-2.418-.168-.186.168-.185 4.08-2.418 1.066-.357v-.79h-6.037z"/>
+                            </svg>
+                        </div>
+                        <span class="font-semibold text-sm">Claude</span>
+                        <span class="text-xs text-gray-400">Anthropic</span>
+                    </button>
+                    
+                    <!-- Microsoft Copilot -->
+                    <button onclick="openAI('https://copilot.microsoft.com', 'Microsoft Copilot')" class="ai-btn bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-blue-400 text-white py-4 px-3 rounded-xl font-medium flex flex-col items-center gap-2 transition-all">
+                        <div class="w-10 h-10 copilot-gradient rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                            </svg>
+                        </div>
+                        <span class="font-semibold text-sm">Copilot</span>
+                        <span class="text-xs text-gray-400">Microsoft</span>
+                    </button>
+                    
+                    <!-- Perplexity -->
+                    <button onclick="openAI('https://perplexity.ai', 'Perplexity')" class="ai-btn bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-teal-500 text-white py-4 px-3 rounded-xl font-medium flex flex-col items-center gap-2 transition-all">
+                        <div class="w-10 h-10 perplexity-gradient rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.18l6.9 3.45L12 11.08 5.1 7.63 12 4.18zM4 8.82l7 3.5v7.36l-7-3.5V8.82zm9 10.86v-7.36l7-3.5v7.36l-7 3.5z"/>
+                            </svg>
+                        </div>
+                        <span class="font-semibold text-sm">Perplexity</span>
+                        <span class="text-xs text-gray-400">AI Search</span>
+                    </button>
+                    
+                    <!-- Grok -->
+                    <button onclick="openAI('https://grok.x.ai', 'Grok')" class="ai-btn bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-gray-400 text-white py-4 px-3 rounded-xl font-medium flex flex-col items-center gap-2 transition-all">
+                        <div class="w-10 h-10 grok-gradient rounded-xl flex items-center justify-center border border-gray-600">
+                            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                            </svg>
+                        </div>
+                        <span class="font-semibold text-sm">Grok</span>
+                        <span class="text-xs text-gray-400">xAI</span>
                     </button>
                 </div>
+                
                 <div id="currentAI" class="mt-5 hidden">
                     <div class="bg-gray-800 px-4 py-2 rounded-full flex items-center gap-2">
                         <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
                         <span class="text-gray-300 text-sm">Using: <span id="currentAIName" class="text-white font-medium">-</span></span>
                     </div>
                 </div>
+                
+                <div class="mt-6 bg-gray-800 rounded-lg p-4 max-w-lg w-full">
+                    <h4 class="text-white font-medium mb-2 flex items-center gap-2">
+                        <span>💡</span> Pro Tips
+                    </h4>
+                    <ul class="text-gray-400 text-sm space-y-1">
+                        <li>• Keep this lab tab open while using the AI</li>
+                        <li>• Copy prompts from the right panel → paste into AI</li>
+                        <li>• Fill in your answers on this page as you go</li>
+                        <li>• All tools are free to use — just sign in!</li>
+                    </ul>
+                </div>
             </div>
         </div>
 
+        <!-- Right Panel: Instructions -->
         <div class="w-1/2 bg-white instructions-panel">
+            <!-- Video Section -->
             <div class="border-b border-gray-200 no-print">
-                <div class="aspect-video bg-gray-900">
-                    <iframe class="w-full h-full" src="https://www.youtube.com/embed/u4ZoJKF_VuA" frameborder="0" allowfullscreen></iframe>
+                <div class="aspect-video bg-gray-900 relative">
+                    <!-- ============================================================
+                         TO ADD YOUR VIDEO:
+                         1. Upload your video to YouTube (can be "Unlisted")
+                         2. Get the video ID from the URL (after v=)
+                         3. Replace "u4ZoJKF_VuA" below with your video ID
+                         ============================================================ -->
+                    <iframe 
+                        class="w-full h-full"
+                        src="https://www.youtube.com/embed/u4ZoJKF_VuA"
+                        title="Start with Why - AI Chef"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen
+                    ></iframe>
+                </div>
+                <div class="p-4 bg-gray-50">
+                    <h3 class="font-semibold text-gray-800">📹 Start with Why — AI Chef</h3>
+                    <p class="text-sm text-gray-600 mt-1">Watch the video, then complete the lab tasks below.</p>
                 </div>
             </div>
 
+            <!-- Instructions Content -->
             <div class="p-6">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">🧪 Lab: The 3 Whys Investigation</h2>
-                
-                <div class="space-y-4">
-                    <div class="task-item border border-gray-200 rounded-lg p-4" id="task1">
-                        <h4 class="font-medium text-gray-800">Step 1: Choose a Business Problem</h4>
-                        <div class="grid grid-cols-1 gap-2 mt-3">
-                            <div class="problem-card border border-gray-200 rounded-lg p-3 cursor-pointer" onclick="selectProblem(this, 'E-Commerce: Shopping cart abandonment rate is 75%')">
-                                <p class="text-sm">🛒 E-Commerce: Cart abandonment is at 75%</p>
+                <!-- Lab Overview -->
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-2">🧪 Lab: Root Cause Analysis with AI</h2>
+                    <p class="text-gray-600">Use the AI assistant to investigate a real business problem and find the root cause using the 3 Whys technique.</p>
+                </div>
+
+                <!-- Task List -->
+                <div class="mb-6">
+                    <h3 class="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                        <span>📋</span> Lab Tasks
+                    </h3>
+                    
+                    <div class="space-y-4" id="taskList">
+                        <!-- Task 1: Choose Problem -->
+                        <div class="task-item border border-gray-200 rounded-lg p-4 transition" id="task1">
+                            <div class="flex items-start gap-3">
+                                <button onclick="toggleTask(1)" class="w-6 h-6 border-2 border-gray-300 rounded flex items-center justify-center flex-shrink-0 mt-0.5 hover:border-purple-400 transition" id="check1">
+                                    <svg class="w-4 h-4 text-green-600 checkmark hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </button>
+                                <div class="flex-1">
+                                    <h4 class="font-medium text-gray-800 task-text">Step 1: Choose a Business Problem</h4>
+                                    <p class="text-sm text-gray-600 mt-1 mb-3">Select ONE real-world business problem to investigate. Pick one that interests you!</p>
+                                    
+                                    <!-- Problem Selection Grid -->
+                                    <div class="grid grid-cols-1 gap-2 mb-3">
+                                        <!-- Marketing -->
+                                        <div class="problem-card border-2 border-gray-200 rounded-lg p-3 cursor-pointer" onclick="selectProblem(this, 'Marketing: Email open rates dropped from 25% to 12% over 6 months')">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-lg">📧</span>
+                                                <div>
+                                                    <span class="text-xs font-medium text-purple-600 uppercase">Marketing</span>
+                                                    <p class="text-sm text-gray-800">Email open rates dropped from 25% to 12% over 6 months</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Sales -->
+                                        <div class="problem-card border-2 border-gray-200 rounded-lg p-3 cursor-pointer" onclick="selectProblem(this, 'Sales: Reps only spend 35% of their time actually selling — the rest is admin work')">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-lg">💼</span>
+                                                <div>
+                                                    <span class="text-xs font-medium text-blue-600 uppercase">Sales</span>
+                                                    <p class="text-sm text-gray-800">Reps only spend 35% of their time actually selling — the rest is admin work</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Customer Support -->
+                                        <div class="problem-card border-2 border-gray-200 rounded-lg p-3 cursor-pointer" onclick="selectProblem(this, 'Customer Support: Average response time is 48 hours, but customers expect under 4 hours')">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-lg">🎧</span>
+                                                <div>
+                                                    <span class="text-xs font-medium text-green-600 uppercase">Customer Support</span>
+                                                    <p class="text-sm text-gray-800">Average response time is 48 hours, but customers expect under 4 hours</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- E-Commerce -->
+                                        <div class="problem-card border-2 border-gray-200 rounded-lg p-3 cursor-pointer" onclick="selectProblem(this, 'E-Commerce: Shopping cart abandonment rate is 75% — customers leave before checkout')">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-lg">🛒</span>
+                                                <div>
+                                                    <span class="text-xs font-medium text-orange-600 uppercase">E-Commerce</span>
+                                                    <p class="text-sm text-gray-800">Shopping cart abandonment rate is 75% — customers leave before checkout</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Supply Chain -->
+                                        <div class="problem-card border-2 border-gray-200 rounded-lg p-3 cursor-pointer" onclick="selectProblem(this, 'Supply Chain: Inventory stockouts happen 3x per month, causing lost sales')">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-lg">📦</span>
+                                                <div>
+                                                    <span class="text-xs font-medium text-yellow-600 uppercase">Supply Chain</span>
+                                                    <p class="text-sm text-gray-800">Inventory stockouts happen 3x per month, causing lost sales</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- HR -->
+                                        <div class="problem-card border-2 border-gray-200 rounded-lg p-3 cursor-pointer" onclick="selectProblem(this, 'HR: New employee turnover is 40% in the first 90 days')">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-lg">👥</span>
+                                                <div>
+                                                    <span class="text-xs font-medium text-pink-600 uppercase">Human Resources</span>
+                                                    <p class="text-sm text-gray-800">New employee turnover is 40% in the first 90 days</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Finance -->
+                                        <div class="problem-card border-2 border-gray-200 rounded-lg p-3 cursor-pointer" onclick="selectProblem(this, 'Finance: Monthly expense reports take 2 weeks to process and are often rejected')">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-lg">💰</span>
+                                                <div>
+                                                    <span class="text-xs font-medium text-emerald-600 uppercase">Finance</span>
+                                                    <p class="text-sm text-gray-800">Monthly expense reports take 2 weeks to process and are often rejected</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Operations -->
+                                        <div class="problem-card border-2 border-gray-200 rounded-lg p-3 cursor-pointer" onclick="selectProblem(this, 'Operations: Meeting overload — employees spend 60% of their week in meetings')">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-lg">⚙️</span>
+                                                <div>
+                                                    <span class="text-xs font-medium text-indigo-600 uppercase">Operations</span>
+                                                    <p class="text-sm text-gray-800">Meeting overload — employees spend 60% of their week in meetings</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Consulting -->
+                                        <div class="problem-card border-2 border-gray-200 rounded-lg p-3 cursor-pointer" onclick="selectProblem(this, 'Consulting: Project deadlines are missed 50% of the time, damaging client relationships')">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-lg">📊</span>
+                                                <div>
+                                                    <span class="text-xs font-medium text-red-600 uppercase">Consulting</span>
+                                                    <p class="text-sm text-gray-800">Project deadlines are missed 50% of the time, damaging client relationships</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <input type="hidden" id="problemChoice" value="">
+                                    
+                                    <div id="selectedProblemDisplay" class="hidden bg-purple-50 border border-purple-200 rounded-lg p-3 mt-2">
+                                        <p class="text-sm text-purple-800"><strong>✓ Your choice:</strong> <span id="selectedProblemText"></span></p>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="problem-card border border-gray-200 rounded-lg p-3 cursor-pointer" onclick="selectProblem(this, 'Operations: Employees spend 60% of their time in meetings')">
-                                <p class="text-sm">⚙️ Operations: Excessive meeting culture</p>
+                        </div>
+
+                        <!-- Task 2: Research -->
+                        <div class="task-item border border-gray-200 rounded-lg p-4 transition" id="task2">
+                            <div class="flex items-start gap-3">
+                                <button onclick="toggleTask(2)" class="w-6 h-6 border-2 border-gray-300 rounded flex items-center justify-center flex-shrink-0 mt-0.5 hover:border-purple-400 transition" id="check2">
+                                    <svg class="w-4 h-4 text-green-600 checkmark hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </button>
+                                <div class="flex-1">
+                                    <h4 class="font-medium text-gray-800 task-text">Step 2: Research the Problem</h4>
+                                    <p class="text-sm text-gray-600 mt-1">Copy this prompt to your AI assistant (replace [YOUR PROBLEM] with your selection):</p>
+                                    <div class="bg-gray-100 p-3 rounded mt-2 text-sm font-mono relative group">
+                                        <button onclick="copyPrompt('prompt1', this)" class="absolute top-2 right-2 text-xs bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 transition">📋 Copy</button>
+                                        <span id="prompt1">What are the most common root causes of [YOUR PROBLEM]? Include statistics, real company examples, and industry benchmarks.</span>
+                                    </div>
+                                    
+                                    <label class="block text-sm font-medium text-gray-700 mt-4 mb-1">Key insights from your research:</label>
+                                    <textarea id="researchInsights" onchange="saveAnswer('researchInsights', this.value)" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="What did the AI tell you about common causes of this problem? Any surprising statistics?"></textarea>
+                                </div>
                             </div>
                         </div>
-                        <input type="hidden" id="problemChoice" value="">
-                    </div>
 
-                    <div class="task-item border border-gray-200 rounded-lg p-4" id="task2">
-                        <h4 class="font-medium text-gray-800">Step 2: Research the Problem</h4>
-                        <div class="bg-gray-100 p-3 rounded mt-2 text-sm font-mono relative">
-                            <button onclick="copyPrompt('prompt1', this)" class="absolute top-2 right-2 bg-purple-600 text-white px-2 py-1 rounded text-xs">Copy</button>
-                            <span id="prompt1">What are the 3 most common reasons for [YOUR PROBLEM]? Provide industry benchmarks.</span>
+                        <!-- Task 3: Start 3 Whys -->
+                        <div class="task-item border border-gray-200 rounded-lg p-4 transition" id="task3">
+                            <div class="flex items-start gap-3">
+                                <button onclick="toggleTask(3)" class="w-6 h-6 border-2 border-gray-300 rounded flex items-center justify-center flex-shrink-0 mt-0.5 hover:border-purple-400 transition" id="check3">
+                                    <svg class="w-4 h-4 text-green-600 checkmark hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </button>
+                                <div class="flex-1">
+                                    <h4 class="font-medium text-gray-800 task-text">Step 3: Start the 3 Whys</h4>
+                                    <p class="text-sm text-gray-600 mt-1">Use this prompt to begin your 3 Whys analysis:</p>
+                                    <div class="bg-gray-100 p-3 rounded mt-2 text-sm font-mono relative group">
+                                        <button onclick="copyPrompt('prompt2', this)" class="absolute top-2 right-2 text-xs bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 transition">📋 Copy</button>
+                                        <span id="prompt2">Help me practice the 3 Whys technique to find the root cause. My problem is: [YOUR PROBLEM]. Ask me "Why?" after each answer I give, and push back if my answer is too surface-level. Stop after the 3rd "Why" and summarize the most likely root cause.</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <textarea id="researchInsights" onchange="saveAnswer('researchInsights', this.value)" rows="2" class="w-full mt-3 px-3 py-2 border rounded-lg text-sm" placeholder="Paste AI insights here..."></textarea>
-                    </div>
 
-                    <div class="task-item border border-gray-200 rounded-lg p-4" id="task3">
-                        <h4 class="font-medium text-gray-800">Step 3: The 3 Whys Analysis</h4>
-                        <div class="bg-gray-100 p-3 rounded mt-2 text-sm font-mono relative">
-                            <button onclick="copyPrompt('prompt2', this)" class="absolute top-2 right-2 bg-purple-600 text-white px-2 py-1 rounded text-xs">Copy</button>
-                            <span id="prompt2">Let's do a '3 Whys' analysis for: [YOUR PROBLEM]. Ask me 'Why?' three times to find the root cause. Start with Why #1.</span>
+                        <!-- Task 4: Document 3 Whys -->
+                        <div class="task-item border border-gray-200 rounded-lg p-4 transition" id="task4">
+                            <div class="flex items-start gap-3">
+                                <button onclick="toggleTask(4)" class="w-6 h-6 border-2 border-gray-300 rounded flex items-center justify-center flex-shrink-0 mt-0.5 hover:border-purple-400 transition" id="check4">
+                                    <svg class="w-4 h-4 text-green-600 checkmark hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </button>
+                                <div class="flex-1">
+                                    <h4 class="font-medium text-gray-800 task-text">Step 4: Document Your 3 Whys</h4>
+                                    <p class="text-sm text-gray-600 mt-1 mb-3">Record each "Why" and your answer from your AI conversation:</p>
+                                    
+                                    <div class="space-y-3">
+                                        <div class="flex gap-2 items-start">
+                                            <span class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-sm font-medium whitespace-nowrap">Why 1</span>
+                                            <input type="text" id="why1" onchange="saveAnswer('why1', this.value)" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="Your answer to the first why...">
+                                        </div>
+                                        <div class="flex gap-2 items-start">
+                                            <span class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-sm font-medium whitespace-nowrap">Why 2</span>
+                                            <input type="text" id="why2" onchange="saveAnswer('why2', this.value)" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="Your answer to the second why...">
+                                        </div>
+                                        <div class="flex gap-2 items-start">
+                                            <span class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-sm font-medium whitespace-nowrap">Why 3</span>
+                                            <input type="text" id="why3" onchange="saveAnswer('why3', this.value)" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="Your answer to the third why...">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="space-y-2 mt-4">
-                            <input type="text" id="why1" onchange="saveAnswer('why1', this.value)" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="Why #1 answer...">
-                            <input type="text" id="why2" onchange="saveAnswer('why2', this.value)" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="Why #2 answer...">
-                            <input type="text" id="why3" onchange="saveAnswer('why3', this.value)" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="Why #3 answer (The Root Cause)...">
+
+                        <!-- Task 5: Root Cause -->
+                        <div class="task-item border border-gray-200 rounded-lg p-4 transition" id="task5">
+                            <div class="flex items-start gap-3">
+                                <button onclick="toggleTask(5)" class="w-6 h-6 border-2 border-gray-300 rounded flex items-center justify-center flex-shrink-0 mt-0.5 hover:border-purple-400 transition" id="check5">
+                                    <svg class="w-4 h-4 text-green-600 checkmark hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </button>
+                                <div class="flex-1">
+                                    <h4 class="font-medium text-gray-800 task-text">Step 5: Identify the Root Cause</h4>
+                                    <p class="text-sm text-gray-600 mt-1 mb-3">Based on your 3 Whys analysis, what is the ROOT CAUSE?</p>
+                                    
+                                    <div class="bg-green-50 border-2 border-green-200 rounded-lg p-3">
+                                        <label class="block text-sm font-semibold text-green-800 mb-2">🎯 The Root Cause Is:</label>
+                                        <textarea id="rootCause" onchange="saveAnswer('rootCause', this.value)" rows="2" class="w-full px-3 py-2 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 text-green-900" placeholder="State the actionable root cause you identified..."></textarea>
+                                    </div>
+                                    
+                                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 mt-3 text-sm">
+                                        💡 <strong>Remember:</strong> A root cause is something <em>actionable</em> — something you can actually fix! If you're still describing a symptom, keep asking "Why?"
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="task-item border border-gray-200 rounded-lg p-4" id="task4">
-                        <h4 class="font-medium text-gray-800">Step 4: Identify the Final Root Cause</h4>
-                        <textarea id="rootCause" onchange="saveAnswer('rootCause', this.value)" rows="2" class="w-full mt-2 px-3 py-2 border-2 border-green-200 rounded-lg text-sm" placeholder="State the final actionable root cause..."></textarea>
-                    </div>
-
-                    <div class="task-item border border-gray-200 rounded-lg p-4" id="task5">
-                        <h4 class="font-medium text-gray-800">Step 5: Reflection</h4>
-                        <textarea id="reflection" onchange="saveAnswer('reflection', this.value)" rows="2" class="w-full mt-2 px-3 py-2 border rounded-lg text-sm" placeholder="How did the AI help you dig deeper than usual?"></textarea>
+                        <!-- Task 6: Reflection -->
+                        <div class="task-item border border-gray-200 rounded-lg p-4 transition" id="task6">
+                            <div class="flex items-start gap-3">
+                                <button onclick="toggleTask(6)" class="w-6 h-6 border-2 border-gray-300 rounded flex items-center justify-center flex-shrink-0 mt-0.5 hover:border-purple-400 transition" id="check6">
+                                    <svg class="w-4 h-4 text-green-600 checkmark hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </button>
+                                <div class="flex-1">
+                                    <h4 class="font-medium text-gray-800 task-text">Step 6: Reflection</h4>
+                                    
+                                    <label class="block text-sm font-medium text-gray-700 mt-3 mb-1">Which AI tool did you use?</label>
+                                    <select id="aiToolUsed" onchange="saveAnswer('aiToolUsed', this.value)" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                                        <option value="">-- Select tool --</option>
+                                        <option value="Gemini">Gemini</option>
+                                        <option value="ChatGPT">ChatGPT</option>
+                                        <option value="Claude">Claude</option>
+                                        <option value="Microsoft Copilot">Microsoft Copilot</option>
+                                        <option value="Perplexity">Perplexity</option>
+                                        <option value="Grok">Grok</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                    
+                                    <label class="block text-sm font-medium text-gray-700 mt-4 mb-1">How did AI help your analysis? What surprised you?</label>
+                                    <textarea id="reflection" onchange="saveAnswer('reflection', this.value)" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="How did AI help you dig deeper? Did the root cause differ from what you initially expected?"></textarea>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="mt-8 bg-purple-600 rounded-lg p-6 text-white text-center">
-                    <h3 class="font-bold text-lg mb-2">📥 Ready to Finish?</h3>
-                    <button onclick="downloadLabReport()" class="w-full bg-white text-purple-600 py-3 rounded-lg font-bold hover:bg-purple-50 transition">
-                        Download Lab Report (.txt)
-                    </button>
-                    <p class="text-xs text-purple-200 mt-2">Upload this file to Blackboard for grading.</p>
+                <!-- How to Submit Section -->
+                <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+                    <h3 class="font-semibold text-amber-800 mb-2 flex items-center gap-2">
+                        <span>📝</span> How to Submit Your Work
+                    </h3>
+                    <ol class="text-sm text-amber-700 space-y-2">
+                        <li class="flex gap-2">
+                            <span class="font-bold">1.</span>
+                            <span>Complete all 6 tasks above and fill in your answers</span>
+                        </li>
+                        <li class="flex gap-2">
+                            <span class="font-bold">2.</span>
+                            <span>Click <strong>"Download Lab Report"</strong> below to save your work</span>
+                        </li>
+                        <li class="flex gap-2">
+                            <span class="font-bold">3.</span>
+                            <span>Go to <strong>Blackboard</strong> and upload your report to the Week 7 assignment</span>
+                        </li>
+                    </ol>
+                </div>
+
+                <!-- Download & Submit Section -->
+                <div class="border-t border-gray-200 pt-6">
+                    <div class="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-6 text-white">
+                        <h3 class="font-bold text-xl mb-2">📥 Download & Submit</h3>
+                        <p class="text-purple-100 mb-4">Download your completed lab report, then upload it to Blackboard.</p>
+                        
+                        <div class="flex gap-3">
+                            <button onclick="downloadLabReport()" class="w-full bg-white text-purple-600 hover:bg-purple-50 py-3 px-4 rounded-lg font-semibold transition flex items-center justify-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                Download Lab Report
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Completion Status -->
+                    <div id="completionStatus" class="mt-4 p-4 bg-gray-50 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <div id="completionIcon" class="text-2xl">⏳</div>
+                            <div>
+                                <p id="completionText" class="font-medium text-gray-700">Complete all tasks before downloading</p>
+                                <p id="completionSubtext" class="text-sm text-gray-500">Select a problem and identify the root cause</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Footer -->
+                <div class="mt-8 pt-6 border-t border-gray-200 text-center text-sm text-gray-500 no-print">
+                    <p>BUS 380: Generative AI for Business Students</p>
+                    <p class="mt-1">University of Evansville | AI Chef 🍳</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
-        let answers = {};
-        let selectedAI = "";
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-2 no-print">
+        <span>✅</span>
+        <span id="toastMessage">Copied to clipboard!</span>
+    </div>
 
-        function selectProblem(element, text) {
-            document.querySelectorAll('.problem-card').forEach(c => c.classList.remove('selected', 'bg-purple-50'));
-            element.classList.add('selected', 'bg-purple-50');
-            document.getElementById('problemChoice').value = text;
-            saveAnswer('problemChoice', text);
-            document.getElementById('task1').classList.add('completed');
+    <script>
+        // State management
+        let completedTasks = {};
+        let answers = {};
+        let selectedAI = null;
+
+        // Password gate (simple client-side)
+        const COURSE_PASSWORD = "Evansville";
+        const ACCESS_KEY = "bus380_course_access";
+
+        function lockLab() {
+            document.getElementById('passwordModal').classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
         }
 
+        function unlockLab() {
+            document.getElementById('passwordModal').classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        function checkCoursePassword() {
+            const input = document.getElementById('coursePasswordInput');
+            const err = document.getElementById('passwordError');
+            const val = (input.value || "").trim();
+
+            if (val === COURSE_PASSWORD) {
+                localStorage.setItem(ACCESS_KEY, "true");
+                err.classList.add('hidden');
+                unlockLab();
+                showToast('Access granted. Welcome!');
+                input.value = "";
+            } else {
+                err.classList.remove('hidden');
+            }
+        }
+
+        // Load saved state on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Password check first
+            const hasAccess = localStorage.getItem(ACCESS_KEY) === "true";
+            if (!hasAccess) {
+                lockLab();
+                const input = document.getElementById('coursePasswordInput');
+                input.focus();
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') checkCoursePassword();
+                });
+            } else {
+                unlockLab();
+            }
+
+            loadState();
+            updateProgress();
+            checkCompletion();
+        });
+        
+        function loadState() {
+            const saved = localStorage.getItem('bus380_week7_lab');
+            if (saved) {
+                const state = JSON.parse(saved);
+                completedTasks = state.completedTasks || {};
+                answers = state.answers || {};
+                selectedAI = state.selectedAI || null;
+                
+                // Restore form values
+                Object.keys(answers).forEach(key => {
+                    const el = document.getElementById(key);
+                    if (el) {
+                        if (el.type === 'hidden') {
+                            el.value = answers[key];
+                            if (key === 'problemChoice' && answers[key]) {
+                                const cards = document.querySelectorAll('.problem-card');
+                                cards.forEach(card => {
+                                    if (card.onclick.toString().includes(answers[key].substring(0, 30))) {
+                                        card.classList.add('selected');
+                                    }
+                                });
+                                document.getElementById('selectedProblemDisplay').classList.remove('hidden');
+                                document.getElementById('selectedProblemText').textContent = answers[key];
+                            }
+                        } else {
+                            el.value = answers[key];
+                        }
+                    }
+                });
+                
+                // Restore task states
+                Object.keys(completedTasks).forEach(taskId => {
+                    if (completedTasks[taskId]) {
+                        updateTaskUI(parseInt(taskId), true);
+                    }
+                });
+                
+                if (selectedAI) showCurrentAI(selectedAI);
+            }
+        }
+        
+        function saveState() {
+            const state = { completedTasks, answers, selectedAI };
+            localStorage.setItem('bus380_week7_lab', JSON.stringify(state));
+        }
+        
+        function saveAnswer(key, value) {
+            answers[key] = value;
+            saveState();
+            checkCompletion();
+        }
+        
+        function selectProblem(element, problemText) {
+            document.querySelectorAll('.problem-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            element.classList.add('selected');
+            document.getElementById('problemChoice').value = problemText;
+            saveAnswer('problemChoice', problemText);
+            
+            document.getElementById('selectedProblemDisplay').classList.remove('hidden');
+            document.getElementById('selectedProblemText').textContent = problemText;
+            
+            markTaskComplete(1);
+            showToast('Problem selected!');
+        }
+        
         function openAI(url, name) {
             window.open(url, '_blank');
             selectedAI = name;
+            saveState();
+            showCurrentAI(name);
+            showToast(`Opened ${name} in new tab`);
+        }
+        
+        function showCurrentAI(name) {
             document.getElementById('currentAI').classList.remove('hidden');
             document.getElementById('currentAIName').textContent = name;
+            saveAnswer('aiToolUsed', name);
+            const select = document.getElementById('aiToolUsed');
+            if (select) {
+                for (let option of select.options) {
+                    if (option.value === name) {
+                        select.value = name;
+                        break;
+                    }
+                }
+            }
         }
-
-        function saveAnswer(key, val) {
-            answers[key] = val;
+        
+        function toggleTask(taskId) {
+            completedTasks[taskId] = !completedTasks[taskId];
+            updateTaskUI(taskId, completedTasks[taskId]);
+            saveState();
             updateProgress();
+            checkCompletion();
         }
-
+        
+        function markTaskComplete(taskId) {
+            completedTasks[taskId] = true;
+            updateTaskUI(taskId, true);
+            saveState();
+            updateProgress();
+            checkCompletion();
+        }
+        
+        function updateTaskUI(taskId, completed) {
+            const taskItem = document.getElementById(`task${taskId}`);
+            const checkbox = document.getElementById(`check${taskId}`);
+            const checkIcon = checkbox.querySelector('svg');
+            
+            if (completed) {
+                taskItem.classList.add('completed');
+                checkbox.classList.remove('border-gray-300');
+                checkbox.classList.add('border-green-500', 'bg-green-500');
+                checkIcon.classList.remove('hidden');
+            } else {
+                taskItem.classList.remove('completed');
+                checkbox.classList.add('border-gray-300');
+                checkbox.classList.remove('border-green-500', 'bg-green-500');
+                checkIcon.classList.add('hidden');
+            }
+        }
+        
         function updateProgress() {
-            const count = Object.keys(answers).filter(k => answers[k].length > 0).length;
-            document.getElementById('progressBadge').textContent = `${count}/5 Progress`;
+            const completed = Object.values(completedTasks).filter(v => v).length;
+            const badge = document.getElementById('progressBadge');
+            badge.textContent = `${completed}/6 Tasks`;
+            
+            if (completed === 6) {
+                badge.classList.remove('bg-purple-100', 'text-purple-700');
+                badge.classList.add('bg-green-100', 'text-green-700');
+            } else {
+                badge.classList.add('bg-purple-100', 'text-purple-700');
+                badge.classList.remove('bg-green-100', 'text-green-700');
+            }
         }
-
-        function copyPrompt(id, btn) {
-            const problem = document.getElementById('problemChoice').value || "my business problem";
-            const text = document.getElementById(id).textContent.replace('[YOUR PROBLEM]', problem);
-            navigator.clipboard.writeText(text);
-            btn.textContent = "Copied!";
-            setTimeout(() => btn.textContent = "Copy", 2000);
+        
+        function checkCompletion() {
+            const problem = document.getElementById('problemChoice').value;
+            const rootCause = document.getElementById('rootCause').value;
+            
+            const isComplete = problem && rootCause;
+            
+            const icon = document.getElementById('completionIcon');
+            const text = document.getElementById('completionText');
+            const subtext = document.getElementById('completionSubtext');
+            const status = document.getElementById('completionStatus');
+            
+            if (isComplete) {
+                icon.textContent = '✅';
+                text.textContent = 'Ready to download!';
+                text.classList.remove('text-gray-700');
+                text.classList.add('text-green-700');
+                subtext.textContent = 'Click "Download Lab Report" then submit to Blackboard';
+                status.classList.remove('bg-gray-50');
+                status.classList.add('bg-green-50');
+            } else {
+                icon.textContent = '⏳';
+                text.textContent = 'Complete required fields before downloading';
+                text.classList.add('text-gray-700');
+                text.classList.remove('text-green-700');
+                subtext.textContent = 'Select a problem and identify the root cause';
+                status.classList.add('bg-gray-50');
+                status.classList.remove('bg-green-50');
+            }
         }
-
+        
+        function copyPrompt(promptId, button) {
+            const promptText = document.getElementById(promptId).textContent;
+            navigator.clipboard.writeText(promptText);
+            
+            const originalText = button.innerHTML;
+            button.innerHTML = '✅ Copied!';
+            button.classList.remove('bg-purple-600');
+            button.classList.add('bg-green-600');
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.classList.add('bg-purple-600');
+                button.classList.remove('bg-green-600');
+            }, 2000);
+            
+            showToast('Prompt copied! Paste it in your AI tool.');
+        }
+        
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+        
         function downloadLabReport() {
-            if (!answers.problemChoice || !answers.rootCause) {
-                alert("Please select a problem and identify a root cause before downloading.");
+            const problem = document.getElementById('problemChoice').value || 'Not selected';
+            const research = document.getElementById('researchInsights').value || 'Not provided';
+            const why1 = document.getElementById('why1').value || 'Not provided';
+            const why2 = document.getElementById('why2').value || 'Not provided';
+            const why3 = document.getElementById('why3').value || 'Not provided';
+            const rootCause = document.getElementById('rootCause').value || 'Not identified';
+            const aiTool = document.getElementById('aiToolUsed').value || selectedAI || 'Not specified';
+            const reflection = document.getElementById('reflection').value || 'Not provided';
+            const completedCount = Object.values(completedTasks).filter(v => v).length;
+            const timestamp = new Date().toLocaleString();
+            
+            if (!document.getElementById('problemChoice').value) {
+                showToast('Please select a problem to investigate!');
                 return;
             }
+            
+            if (!document.getElementById('rootCause').value) {
+                showToast('Please identify the root cause!');
+                return;
+            }
+            
+            const problemCategory = problem.split(':')[0] || 'General';
+            
             const report = `
-BUS 380: AI LAB REPORT - ROOT CAUSE ANALYSIS
----------------------------------------------
-Date: ${new Date().toLocaleString()}
-AI Tool Used: ${selectedAI || 'Not Specified'}
+════════════════════════════════════════════════════════════════════
+                    BUS 380 - AI LAB REPORT
+                 Week 7: Root Cause Analysis
+════════════════════════════════════════════════════════════════════
 
-SELECTED PROBLEM:
-${answers.problemChoice}
+LAB COMPLETION
+───────────────────────────────────────────────────────────────────
+Date Completed:  ${timestamp}
+Tasks Completed: ${completedCount}/6
+AI Tool Used:    ${aiTool}
 
-RESEARCH INSIGHTS:
-${answers.researchInsights || 'None provided'}
 
-THE 3 WHYS:
-1. ${answers.why1 || 'N/A'}
-2. ${answers.why2 || 'N/A'}
-3. ${answers.why3 || 'N/A'}
+PROBLEM INVESTIGATED
+───────────────────────────────────────────────────────────────────
+Category: ${problemCategory}
 
-FINAL ROOT CAUSE:
-${answers.rootCause}
+Problem: ${problem}
 
-STUDENT REFLECTION:
-${answers.reflection || 'None provided'}
----------------------------------------------
-University of Evansville | Spring 2026
-            `;
+
+RESEARCH INSIGHTS
+───────────────────────────────────────────────────────────────────
+${research}
+
+
+3 WHYS ANALYSIS
+───────────────────────────────────────────────────────────────────
+
+WHY 1: Why is this problem occurring?
+→ ${why1}
+
+WHY 2: Why is that?
+→ ${why2}
+
+WHY 3: Why?
+→ ${why3}
+
+
+ROOT CAUSE IDENTIFIED
+═══════════════════════════════════════════════════════════════════
+
+${rootCause}
+
+═══════════════════════════════════════════════════════════════════
+
+
+REFLECTION
+───────────────────────────────────────────────────────────────────
+${reflection}
+
+
+────────────────────────────────────────────────────────────────────
+BUS 380: Generative AI for Business Students
+University of Evansville | Week 7 Lab
+────────────────────────────────────────────────────────────────────
+`;
+            
             const blob = new Blob([report], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `BUS380_Lab_Report.txt`;
+            a.download = `Week7_Lab_Report_${timestamp.replace(/[/:,\s]/g, '_')}.txt`;
+            document.body.appendChild(a);
             a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast('Lab report downloaded! Now submit to Blackboard.');
+            
+            for (let i = 1; i <= 6; i++) {
+                completedTasks[i] = true;
+                updateTaskUI(i, true);
+            }
+            saveState();
+            updateProgress();
+        }
+        
+        function resetLab() {
+            localStorage.removeItem('bus380_week7_lab');
+            location.reload();
         }
     </script>
 </body>
 </html>
+```
