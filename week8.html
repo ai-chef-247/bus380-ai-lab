@@ -1,0 +1,1730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Week 8: AI Tool Selection Lab | BUS 380</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+            min-height: 100vh;
+            color: #1f2937;
+        }
+
+        /* Password Overlay */
+        .password-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .password-box {
+            background: white;
+            border-radius: 16px;
+            padding: 32px 40px;
+            text-align: center;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+            max-width: 420px;
+            width: 90%;
+        }
+
+        .password-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .ue-badge {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .password-header-text h2 {
+            color: #1f2937;
+            margin: 0;
+            font-size: 1.4rem;
+            text-align: left;
+        }
+
+        .password-header-text p {
+            color: #6b7280;
+            margin: 4px 0 0 0;
+            font-size: 0.85rem;
+            text-align: left;
+        }
+
+        .password-field {
+            text-align: left;
+            margin-bottom: 16px;
+        }
+
+        .password-field label {
+            display: block;
+            color: #374151;
+            font-weight: 500;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .password-box input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .password-box input:focus {
+            outline: none;
+            border-color: #9333ea;
+            box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
+        }
+
+        .password-box button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 16px;
+        }
+
+        .password-box button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(147, 51, 234, 0.4);
+        }
+
+        .password-help {
+            font-size: 0.8rem;
+            color: #9ca3af;
+        }
+
+        .password-error {
+            color: #dc2626;
+            font-size: 0.85rem;
+            margin-top: 12px;
+            min-height: 20px;
+        }
+
+        /* Main Layout */
+        .main-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .lab-panel {
+            width: 55%;
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .tools-panel {
+            width: 45%;
+            background: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            border-left: 3px solid #7c3aed;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 20px;
+            color: white;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+
+        .header-badge {
+            display: inline-block;
+            background: rgba(245, 158, 11, 0.3);
+            border: 1px solid #f59e0b;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #fde68a;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 0.85rem;
+            color: #c4b5fd;
+        }
+
+        /* Video Section */
+        .video-section {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+
+        .video-section h3 {
+            color: #fde68a;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Progress */
+        .progress-section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+
+        .progress-bar {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+
+        .progress-dot {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .progress-step.active .progress-dot {
+            background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
+        }
+
+        .progress-step.completed .progress-dot {
+            background: #10b981;
+        }
+
+        .progress-label {
+            font-size: 8px;
+            color: rgba(255,255,255,0.5);
+            margin-top: 4px;
+            text-align: center;
+        }
+
+        .progress-step.active .progress-label {
+            color: #fde68a;
+        }
+
+        /* Task Cards */
+        .task-card {
+            background: white;
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 14px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            display: none;
+        }
+
+        .task-card.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .task-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ede9fe;
+        }
+
+        .task-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .task-icon.amber { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        .task-icon.purple { background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); }
+        .task-icon.blue { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+        .task-icon.green { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+
+        .task-title h2 {
+            font-size: 1rem;
+            color: #1f2937;
+            margin-bottom: 2px;
+        }
+
+        .task-title p {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        /* Scenario Box */
+        .scenario-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 4px solid #f59e0b;
+            padding: 14px;
+            border-radius: 0 10px 10px 0;
+            margin-bottom: 14px;
+        }
+
+        .scenario-box h4 {
+            color: #92400e;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+        }
+
+        .scenario-box p {
+            color: #78350f;
+            font-size: 0.8rem;
+            line-height: 1.5;
+        }
+
+        /* Property Card */
+        .property-card {
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 14px;
+            color: white;
+        }
+
+        .property-card h4 {
+            color: #fde68a;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+        }
+
+        .property-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            font-size: 0.75rem;
+        }
+
+        .property-detail {
+            background: rgba(255,255,255,0.1);
+            padding: 6px 10px;
+            border-radius: 6px;
+        }
+
+        .property-detail strong {
+            color: #c4b5fd;
+            display: block;
+            font-size: 0.65rem;
+            margin-bottom: 1px;
+        }
+
+        .copy-prompt-btn {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+        }
+
+        .copy-prompt-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+        }
+
+        /* Rating Stars */
+        .rating-group {
+            margin-bottom: 12px;
+        }
+
+        .rating-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+
+        .rating-stars {
+            display: flex;
+            gap: 3px;
+        }
+
+        .star {
+            width: 28px;
+            height: 28px;
+            background: #e5e7eb;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .star:hover, .star.active {
+            background: #fde68a;
+        }
+
+        /* Text Areas */
+        .input-group {
+            margin-bottom: 12px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 4px;
+            font-size: 0.8rem;
+        }
+
+        .input-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 70px;
+            transition: all 0.2s ease;
+        }
+
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #7c3aed;
+        }
+
+        .input-group .hint {
+            font-size: 0.7rem;
+            color: #6b7280;
+            margin-top: 3px;
+        }
+
+        /* Tool Cards for Selection */
+        .tool-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .tool-card-select {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tool-card-select:hover {
+            border-color: #7c3aed;
+        }
+
+        .tool-card-select.selected {
+            border-color: #7c3aed;
+            background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+        }
+
+        .tool-card-select.over-budget {
+            border-color: #fbbf24;
+            background: #fffbeb;
+        }
+
+        .tool-card-select.over-budget.selected {
+            border-color: #f59e0b;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        }
+
+        .tool-card-select .tool-icon-small {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .tool-card-select .tool-info {
+            flex: 1;
+        }
+
+        .tool-card-select .tool-info h5 {
+            font-size: 0.85rem;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tool-card-select .tool-info p {
+            font-size: 0.7rem;
+            color: #6b7280;
+        }
+
+        .tool-card-select .check {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #7c3aed;
+            color: white;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .tool-card-select.selected .check {
+            display: flex;
+        }
+
+        .budget-badge {
+            font-size: 0.6rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .budget-badge.within {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .budget-badge.over {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Buttons */
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 14px;
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        /* ========== RIGHT PANEL - AI TOOLS ========== */
+        .tools-header {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            padding: 14px 16px;
+            color: white;
+        }
+
+        .tools-header h2 {
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .tools-header p {
+            font-size: 0.75rem;
+            opacity: 0.9;
+        }
+
+        /* Tool Launcher Cards */
+        .tool-launcher-section {
+            padding: 16px;
+            background: #f1f5f9;
+        }
+
+        .tool-launcher-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .tool-launcher {
+            background: white;
+            border-radius: 12px;
+            padding: 14px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .tool-launcher:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            border-color: #7c3aed;
+        }
+
+        .tool-launcher.active {
+            border-color: #10b981;
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        }
+
+        .tool-launcher.sample-only {
+            cursor: default;
+        }
+
+        .tool-launcher.sample-only:hover {
+            transform: none;
+            border-color: #f59e0b;
+        }
+
+        .tool-launcher .tool-logo {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            margin: 0 auto 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .tool-launcher .tool-logo.claude { background: linear-gradient(135deg, #d4a574 0%, #c9956c 100%); }
+        .tool-launcher .tool-logo.chatgpt { background: linear-gradient(135deg, #10a37f 0%, #0d8a6a 100%); }
+        .tool-launcher .tool-logo.jasper { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); }
+        .tool-launcher .tool-logo.copyai { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+
+        .tool-launcher h4 {
+            font-size: 0.85rem;
+            color: #1f2937;
+            margin-bottom: 2px;
+        }
+
+        .tool-launcher .tool-price {
+            font-size: 0.7rem;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+
+        .tool-launcher .tool-type {
+            font-size: 0.65rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        .tool-launcher .tool-type.general {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .tool-launcher .tool-type.specialized {
+            background: #f3e8ff;
+            color: #6b21a8;
+        }
+
+        .tool-launcher .status-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.6rem;
+            font-weight: 600;
+        }
+
+        .tool-launcher .status-badge.open {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .tool-launcher .status-badge.sample {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .tool-launcher .launch-btn {
+            width: 100%;
+            padding: 8px 12px;
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tool-launcher .launch-btn:hover {
+            transform: scale(1.02);
+        }
+
+        .tool-launcher.active .launch-btn {
+            background: #10b981;
+        }
+
+        .tool-launcher .launch-btn.sample-btn {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            cursor: pointer;
+        }
+
+        /* Jasper Sample Panel */
+        .jasper-sample-panel {
+            display: none;
+            background: white;
+            border-radius: 10px;
+            padding: 14px;
+            margin-top: 12px;
+            border: 2px solid #f59e0b;
+        }
+
+        .jasper-sample-panel.visible {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .jasper-sample-panel h5 {
+            color: #92400e;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .jasper-sample-panel .sample-output {
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 0.8rem;
+            color: #374151;
+            line-height: 1.5;
+            font-style: italic;
+            margin-bottom: 10px;
+            border-left: 3px solid #8b5cf6;
+        }
+
+        .jasper-sample-panel .jasper-info {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        .jasper-sample-panel .over-budget-warning {
+            background: #fee2e2;
+            border-radius: 6px;
+            padding: 8px;
+            font-size: 0.75rem;
+            color: #991b1b;
+            margin-top: 8px;
+        }
+
+        /* Instructions Panel */
+        .instructions-panel {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            background: white;
+        }
+
+        .instruction-box {
+            background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+
+        .instruction-box h4 {
+            color: #5b21b6;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+        }
+
+        .instruction-box ol {
+            padding-left: 18px;
+            font-size: 0.78rem;
+            color: #4c1d95;
+        }
+
+        .instruction-box li {
+            margin-bottom: 4px;
+        }
+
+        /* Comparison Table */
+        .comparison-section h4 {
+            font-size: 0.85rem;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.7rem;
+        }
+
+        .comparison-table th {
+            background: #7c3aed;
+            color: white;
+            padding: 8px 4px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 6px 4px;
+            text-align: center;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background: #f9fafb;
+        }
+
+        .comparison-table .over-budget-row td {
+            background: #fef3c7;
+        }
+
+        /* Tips Box */
+        .tips-box {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 10px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 12px;
+        }
+
+        .tips-box h5 {
+            color: #92400e;
+            font-size: 0.8rem;
+            margin-bottom: 4px;
+        }
+
+        .tips-box p {
+            color: #78350f;
+            font-size: 0.72rem;
+            line-height: 1.4;
+        }
+
+        /* Window Info */
+        .window-info {
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            color: white;
+        }
+
+        .window-info h5 {
+            color: #fde68a;
+            font-size: 0.75rem;
+            margin-bottom: 4px;
+        }
+
+        .window-info p {
+            font-size: 0.7rem;
+            color: #c4b5fd;
+            line-height: 1.4;
+        }
+
+        /* Teaching Moment Box */
+        .teaching-moment {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #f59e0b;
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+
+        .teaching-moment h5 {
+            color: #92400e;
+            font-size: 0.8rem;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .teaching-moment p {
+            font-size: 0.75rem;
+            color: #78350f;
+            line-height: 1.5;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-container {
+                flex-direction: column;
+            }
+            .lab-panel, .tools-panel {
+                width: 100%;
+            }
+            .tools-panel {
+                min-height: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Password Overlay -->
+    <div class="password-overlay" id="passwordOverlay">
+        <div class="password-box">
+            <div class="password-header">
+                <div class="ue-badge">UE</div>
+                <div class="password-header-text">
+                    <h2>Course Access</h2>
+                    <p>Enter the course password to open this lab.</p>
+                </div>
+            </div>
+            <div class="password-field">
+                <label>Course Password</label>
+                <input type="password" id="passwordInput" placeholder="Enter password" onkeypress="checkEnter(event)">
+            </div>
+            <button onclick="checkPassword()">Unlock Lab</button>
+            <p class="password-help">If you don't have the password, contact your instructor.</p>
+            <p class="password-error" id="passwordError"></p>
+        </div>
+    </div>
+
+    <div class="main-container" id="mainContent">
+        <!-- LEFT PANEL: Lab Walkthrough -->
+        <div class="lab-panel">
+            <div class="header">
+                <span class="header-badge">🧪 WEEK 8 LAB</span>
+                <h1>AI Tool Selection Lab</h1>
+                <p>Test real AI tools • Make your recommendation</p>
+            </div>
+
+            <!-- Video Walkthrough -->
+            <div class="video-section">
+                <h3>📺 Lab Walkthrough</h3>
+                <div class="video-container">
+                    <iframe src="https://www.youtube.com/embed/hl1qFJV9pso" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+            </div>
+
+            <!-- Progress -->
+            <div class="progress-section">
+                <div class="progress-bar">
+                    <div class="progress-step active" data-step="1">
+                        <div class="progress-dot">1</div>
+                        <span class="progress-label">Scenario</span>
+                    </div>
+                    <div class="progress-step" data-step="2">
+                        <div class="progress-dot">2</div>
+                        <span class="progress-label">Test AI</span>
+                    </div>
+                    <div class="progress-step" data-step="3">
+                        <div class="progress-dot">3</div>
+                        <span class="progress-label">Evaluate</span>
+                    </div>
+                    <div class="progress-step" data-step="4">
+                        <div class="progress-dot">4</div>
+                        <span class="progress-label">Decide</span>
+                    </div>
+                    <div class="progress-step" data-step="5">
+                        <div class="progress-dot">5</div>
+                        <span class="progress-label">Submit</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TASK 1: Review Scenario -->
+            <div class="task-card active" id="task1">
+                <div class="task-header">
+                    <div class="task-icon amber">📋</div>
+                    <div class="task-title">
+                        <h2>Task 1: Review the Scenario</h2>
+                        <p>Understand the business problem first</p>
+                    </div>
+                </div>
+
+                <div class="scenario-box">
+                    <h4>🏠 Riverside Realty</h4>
+                    <p><strong>Problem:</strong> 15 agents spend 30-45 min writing each property listing. That's 5-7 hours/week of writing time.</p>
+                    <p style="margin-top: 6px;"><strong>Goal:</strong> Find an AI tool that's easy to use, <strong>budget: $0-50/month</strong>, and maintains professional quality.</p>
+                </div>
+
+                <div class="property-card">
+                    <h4>🏡 Test Property Data</h4>
+                    <div class="property-details">
+                        <div class="property-detail">
+                            <strong>ADDRESS</strong>
+                            742 Maple St, Evansville, IN
+                        </div>
+                        <div class="property-detail">
+                            <strong>PRICE</strong>
+                            $289,000
+                        </div>
+                        <div class="property-detail">
+                            <strong>BEDS/BATHS</strong>
+                            3 bed / 2 bath
+                        </div>
+                        <div class="property-detail">
+                            <strong>SIZE</strong>
+                            1,850 sq ft
+                        </div>
+                    </div>
+                    <div style="margin-top: 8px; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 6px; font-size: 0.75rem;">
+                        <strong style="color: #fde68a;">Features:</strong> Open floor plan, granite counters, hardwood floors, 2-car garage, fenced yard, near Wesselman Woods
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>What's the core business problem?</label>
+                    <textarea id="problem-statement" placeholder="Describe the problem in 1-2 sentences..."></textarea>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="nextTask(2)">Continue to AI Testing →</button>
+                </div>
+            </div>
+
+            <!-- TASK 2: Test AI -->
+            <div class="task-card" id="task2">
+                <div class="task-header">
+                    <div class="task-icon purple">🧪</div>
+                    <div class="task-title">
+                        <h2>Task 2: Test the AI Tools</h2>
+                        <p>Launch tools on the right → Test with the prompt</p>
+                    </div>
+                </div>
+
+                <div class="scenario-box" style="background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%); border-left-color: #7c3aed;">
+                    <h4 style="color: #5b21b6;">👉 Instructions</h4>
+                    <p style="color: #4c1d95;">1. Click <strong>"Launch"</strong> on Claude, ChatGPT, or Copy.ai<br>
+                    2. Copy the prompt below and paste it in the AI<br>
+                    3. For Jasper, click <strong>"View Sample"</strong> to see output<br>
+                    4. Compare outputs and paste your favorite below</p>
+                </div>
+
+                <div class="property-card">
+                    <h4>📝 Copy This Prompt</h4>
+                    <div style="background: rgba(255,255,255,0.1); border-radius: 6px; padding: 10px; font-size: 0.75rem; line-height: 1.4;">
+                        Write a compelling real estate listing description for this property:
+
+• 742 Maple Street, Evansville, IN
+• $289,000 | 3 bed, 2 bath | 1,850 sq ft
+• Built 2018 | 0.25 acre lot
+• Features: Open floor plan, granite countertops, stainless steel appliances, hardwood floors, 2-car garage, fenced backyard
+• Near Wesselman Woods Nature Preserve
+
+Make it professional, engaging, and 100-150 words. Target audience: families looking for move-in ready homes.
+                    </div>
+                    <button class="copy-prompt-btn" onclick="copyPrompt()">📋 Copy Prompt</button>
+                </div>
+
+                <div class="input-group">
+                    <label>Paste your best AI-generated description:</label>
+                    <textarea id="ai-output" placeholder="Copy the AI output and paste here..."></textarea>
+                    <p class="hint">This helps you evaluate and compare outputs</p>
+                </div>
+
+                <div class="input-group">
+                    <label>Which tool(s) did you test?</label>
+                    <textarea id="tools-tested" placeholder="e.g., Claude and ChatGPT" style="min-height: 40px;"></textarea>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="prevTask(1)">← Back</button>
+                    <button class="btn btn-primary" onclick="nextTask(3)">Evaluate Output →</button>
+                </div>
+            </div>
+
+            <!-- TASK 3: Evaluate -->
+            <div class="task-card" id="task3">
+                <div class="task-header">
+                    <div class="task-icon blue">📊</div>
+                    <div class="task-title">
+                        <h2>Task 3: Evaluate the Output</h2>
+                        <p>Rate the AI-generated description</p>
+                    </div>
+                </div>
+
+                <div class="rating-group">
+                    <label>📝 Quality (professional, engaging)</label>
+                    <div class="rating-stars" data-rating="quality">
+                        <div class="star" onclick="setRating('quality', 1)">⭐</div>
+                        <div class="star" onclick="setRating('quality', 2)">⭐</div>
+                        <div class="star" onclick="setRating('quality', 3)">⭐</div>
+                        <div class="star" onclick="setRating('quality', 4)">⭐</div>
+                        <div class="star" onclick="setRating('quality', 5)">⭐</div>
+                    </div>
+                </div>
+
+                <div class="rating-group">
+                    <label>✅ Accuracy (correct property details)</label>
+                    <div class="rating-stars" data-rating="accuracy">
+                        <div class="star" onclick="setRating('accuracy', 1)">⭐</div>
+                        <div class="star" onclick="setRating('accuracy', 2)">⭐</div>
+                        <div class="star" onclick="setRating('accuracy', 3)">⭐</div>
+                        <div class="star" onclick="setRating('accuracy', 4)">⭐</div>
+                        <div class="star" onclick="setRating('accuracy', 5)">⭐</div>
+                    </div>
+                </div>
+
+                <div class="rating-group">
+                    <label>⏱️ Speed & Ease of Use</label>
+                    <div class="rating-stars" data-rating="ease">
+                        <div class="star" onclick="setRating('ease', 1)">⭐</div>
+                        <div class="star" onclick="setRating('ease', 2)">⭐</div>
+                        <div class="star" onclick="setRating('ease', 3)">⭐</div>
+                        <div class="star" onclick="setRating('ease', 4)">⭐</div>
+                        <div class="star" onclick="setRating('ease', 5)">⭐</div>
+                    </div>
+                </div>
+
+                <div class="rating-group">
+                    <label>🎯 Would you use this for real listings?</label>
+                    <div class="rating-stars" data-rating="usability">
+                        <div class="star" onclick="setRating('usability', 1)">⭐</div>
+                        <div class="star" onclick="setRating('usability', 2)">⭐</div>
+                        <div class="star" onclick="setRating('usability', 3)">⭐</div>
+                        <div class="star" onclick="setRating('usability', 4)">⭐</div>
+                        <div class="star" onclick="setRating('usability', 5)">⭐</div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>What edits would you make before publishing?</label>
+                    <textarea id="edits-needed" placeholder="What would you change?"></textarea>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="prevTask(2)">← Back</button>
+                    <button class="btn btn-primary" onclick="nextTask(4)">Make Recommendation →</button>
+                </div>
+            </div>
+
+            <!-- TASK 4: Decide -->
+            <div class="task-card" id="task4">
+                <div class="task-header">
+                    <div class="task-icon green">✅</div>
+                    <div class="task-title">
+                        <h2>Task 4: Make Your Recommendation</h2>
+                        <p>Which tool should Riverside Realty use?</p>
+                    </div>
+                </div>
+
+                <p style="font-size: 0.8rem; color: #6b7280; margin-bottom: 12px;">Remember: Budget is <strong>$0-50/month</strong> for the whole team.</p>
+
+                <div class="tool-cards">
+                    <div class="tool-card-select" onclick="selectTool(this, 'claude')">
+                        <div class="tool-icon-small">🧠</div>
+                        <div class="tool-info">
+                            <h5>Claude <span class="budget-badge within">✓ In Budget</span></h5>
+                            <p>Free / $20 mo • General LLM • Great writing quality</p>
+                        </div>
+                        <div class="check">✓</div>
+                    </div>
+                    <div class="tool-card-select" onclick="selectTool(this, 'chatgpt')">
+                        <div class="tool-icon-small">🤖</div>
+                        <div class="tool-info">
+                            <h5>ChatGPT <span class="budget-badge within">✓ In Budget</span></h5>
+                            <p>Free / $20 mo • General LLM • Custom GPTs available</p>
+                        </div>
+                        <div class="check">✓</div>
+                    </div>
+                    <div class="tool-card-select" onclick="selectTool(this, 'copyai')">
+                        <div class="tool-icon-small">✍️</div>
+                        <div class="tool-info">
+                            <h5>Copy.ai <span class="budget-badge within">✓ In Budget</span></h5>
+                            <p>Free / $36 mo • Marketing specialized • Templates</p>
+                        </div>
+                        <div class="check">✓</div>
+                    </div>
+                    <div class="tool-card-select over-budget" onclick="selectTool(this, 'jasper')">
+                        <div class="tool-icon-small">✨</div>
+                        <div class="tool-info">
+                            <h5>Jasper <span class="budget-badge over">⚠️ Over Budget</span></h5>
+                            <p>$49+/user/mo • Marketing specialized • Real estate templates</p>
+                        </div>
+                        <div class="check">✓</div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Why is this the right tool? (Use WHAT framework)</label>
+                    <textarea id="recommendation-why" placeholder="Consider: Task, Data, Output, Constraints..."></textarea>
+                    <p class="hint">Reference the budget constraint in your answer!</p>
+                </div>
+
+                <div class="input-group">
+                    <label>What's ONE risk or limitation Sarah should know?</label>
+                    <textarea id="recommendation-risk" placeholder="Every tool has tradeoffs..."></textarea>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="prevTask(3)">← Back</button>
+                    <button class="btn btn-primary" onclick="nextTask(5)">Review & Submit →</button>
+                </div>
+            </div>
+
+            <!-- TASK 5: Submit -->
+            <div class="task-card" id="task5">
+                <div class="task-header">
+                    <div class="task-icon green">🎉</div>
+                    <div class="task-title">
+                        <h2>Task 5: Submit Your Lab</h2>
+                        <p>Download your completed report</p>
+                    </div>
+                </div>
+
+                <div class="scenario-box" style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border-left-color: #10b981;">
+                    <h4 style="color: #065f46;">✅ Framework Applied!</h4>
+                    <p style="color: #047857;">
+                        <strong>WHY:</strong> Too much time writing listings<br>
+                        <strong>WHERE:</strong> Description writing step<br>
+                        <strong>WHAT:</strong> Your tool recommendation
+                    </p>
+                </div>
+
+                <div id="final-summary" style="background: #f9fafb; border-radius: 10px; padding: 14px; margin-bottom: 12px; font-size: 0.85rem;">
+                </div>
+
+                <div class="input-group">
+                    <label>Any final reflections?</label>
+                    <textarea id="reflection" placeholder="What did you learn? Did budget constraints change your thinking?"></textarea>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="prevTask(4)">← Back</button>
+                    <button class="btn btn-success" onclick="downloadReport()">📥 Download Report</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL: AI Tool Launchers -->
+        <div class="tools-panel">
+            <div class="tools-header">
+                <h2>🚀 AI Tool Testing Station</h2>
+                <p>Launch tools to compare • Budget: $0-50/mo</p>
+            </div>
+
+            <div class="tool-launcher-section">
+                <div class="tool-launcher-grid">
+                    <!-- Claude -->
+                    <div class="tool-launcher" id="launcher-claude" onclick="launchTool('claude')">
+                        <span class="status-badge" id="status-claude"></span>
+                        <div class="tool-logo claude">🧠</div>
+                        <h4>Claude</h4>
+                        <div class="tool-price">Free / $20 mo</div>
+                        <span class="tool-type general">General LLM</span>
+                        <button class="launch-btn">Launch →</button>
+                    </div>
+
+                    <!-- ChatGPT -->
+                    <div class="tool-launcher" id="launcher-chatgpt" onclick="launchTool('chatgpt')">
+                        <span class="status-badge" id="status-chatgpt"></span>
+                        <div class="tool-logo chatgpt">🤖</div>
+                        <h4>ChatGPT</h4>
+                        <div class="tool-price">Free / $20 mo</div>
+                        <span class="tool-type general">General LLM</span>
+                        <button class="launch-btn">Launch →</button>
+                    </div>
+
+                    <!-- Jasper (Sample Only) -->
+                    <div class="tool-launcher sample-only" id="launcher-jasper" onclick="toggleJasperSample()">
+                        <span class="status-badge sample">Sample Only</span>
+                        <div class="tool-logo jasper">✨</div>
+                        <h4>Jasper</h4>
+                        <div class="tool-price" style="color: #dc2626;">$49+/user/mo</div>
+                        <span class="tool-type specialized">Marketing AI</span>
+                        <button class="launch-btn sample-btn">View Sample ↓</button>
+                    </div>
+
+                    <!-- Copy.ai -->
+                    <div class="tool-launcher" id="launcher-copyai" onclick="launchTool('copyai')">
+                        <span class="status-badge" id="status-copyai"></span>
+                        <div class="tool-logo copyai">✍️</div>
+                        <h4>Copy.ai</h4>
+                        <div class="tool-price">Free / $36 mo</div>
+                        <span class="tool-type specialized">Marketing AI</span>
+                        <button class="launch-btn">Launch →</button>
+                    </div>
+                </div>
+
+                <!-- Jasper Sample Panel -->
+                <div class="jasper-sample-panel" id="jasper-sample">
+                    <h5>✨ Jasper Sample Output</h5>
+                    <div class="sample-output">
+                        "Welcome home to 742 Maple Street – where modern comfort meets nature's beauty! 🏡
+
+This stunning 3-bedroom, 2-bathroom gem built in 2018 offers 1,850 sq ft of thoughtfully designed living space. Fall in love with the open floor plan, gleaming hardwood floors, and a chef's kitchen featuring granite countertops and stainless steel appliances.
+
+Step outside to your private fenced backyard – perfect for summer BBQs and family gatherings. With an attached 2-car garage and just minutes from Wesselman Woods Nature Preserve, you'll enjoy the perfect blend of convenience and outdoor adventure.
+
+Move-in ready at $289,000. Your family's next chapter starts here!
+
+📞 Schedule your private showing today!"
+                    </div>
+                    <div class="jasper-info">
+                        <strong>Why Jasper stands out:</strong> Real estate templates, Brand Voice AI, team collaboration features
+                    </div>
+                    <div class="over-budget-warning">
+                        ⚠️ <strong>Budget Issue:</strong> At $49/user/month × 15 agents = <strong>$735/month</strong> — way over the $50 budget! Even 1 seat exceeds budget.
+                    </div>
+                </div>
+            </div>
+
+            <div class="instructions-panel">
+                <div class="window-info">
+                    <h5>💡 Side-by-Side Testing</h5>
+                    <p>Tools open in popup windows. Snap them next to this lab using Win+← / Win+→ (Windows) or drag to screen edge (Mac).</p>
+                </div>
+
+                <div class="instruction-box">
+                    <h4>📋 How to Test</h4>
+                    <ol>
+                        <li>Click <strong>Launch</strong> on 2+ tools</li>
+                        <li>Copy prompt from Task 2</li>
+                        <li>Paste in each tool & generate</li>
+                        <li>View <strong>Jasper Sample</strong> for comparison</li>
+                        <li>Paste your favorite back in Task 2</li>
+                    </ol>
+                </div>
+
+                <div class="comparison-section">
+                    <h4>📊 Tool Comparison</h4>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Tool</th>
+                                <th>Type</th>
+                                <th>Free?</th>
+                                <th>Paid</th>
+                                <th>Budget?</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Claude</strong></td>
+                                <td>General</td>
+                                <td>✅</td>
+                                <td>$20/mo</td>
+                                <td>✅</td>
+                            </tr>
+                            <tr>
+                                <td><strong>ChatGPT</strong></td>
+                                <td>General</td>
+                                <td>✅</td>
+                                <td>$20/mo</td>
+                                <td>✅</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Copy.ai</strong></td>
+                                <td>Marketing</td>
+                                <td>✅</td>
+                                <td>$36/mo</td>
+                                <td>✅</td>
+                            </tr>
+                            <tr class="over-budget-row">
+                                <td><strong>Jasper</strong></td>
+                                <td>Marketing</td>
+                                <td>❌</td>
+                                <td>$49+/user</td>
+                                <td>❌</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="teaching-moment">
+                    <h5>💡 The Jasper Lesson</h5>
+                    <p>Jasper has great real estate features — but at $49/user/month for 15 agents, that's <strong>$735/month</strong>. Sometimes the "best" tool isn't the right tool when constraints matter. This is why we use the <strong>WHAT framework</strong>!</p>
+                </div>
+
+                <div class="tips-box">
+                    <h5>🎯 Budget Reminder</h5>
+                    <p>Riverside Realty's budget is <strong>$0-50/month total</strong>. Which tools actually fit? Consider both quality AND constraints.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Password Protection
+        function checkPassword() {
+            const input = document.getElementById('passwordInput').value;
+            const error = document.getElementById('passwordError');
+            
+            if (input.toLowerCase() === 'evansville') {
+                document.getElementById('passwordOverlay').style.display = 'none';
+            } else {
+                error.textContent = 'Incorrect password. Please try again.';
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('passwordInput').focus();
+            }
+        }
+
+        function checkEnter(event) {
+            if (event.key === 'Enter') {
+                checkPassword();
+            }
+        }
+
+        // Focus on password input when page loads
+        window.onload = function() {
+            document.getElementById('passwordInput').focus();
+        };
+
+        // Track state
+        let ratings = { quality: 0, accuracy: 0, ease: 0, usability: 0 };
+        let selectedTool = null;
+        let openWindows = {};
+
+        // Tool URLs
+        const toolURLs = {
+            claude: 'https://claude.ai/new',
+            chatgpt: 'https://chat.openai.com/',
+            copyai: 'https://www.copy.ai/'
+        };
+
+        // Launch tool in popup window
+        function launchTool(tool) {
+            const url = toolURLs[tool];
+            if (!url) return;
+
+            const width = 650;
+            const height = window.innerHeight - 50;
+            const left = window.innerWidth - width - 20;
+            const top = 25;
+
+            // Check if window already exists and is open
+            if (openWindows[tool] && !openWindows[tool].closed) {
+                openWindows[tool].focus();
+                return;
+            }
+
+            // Open new window
+            const popup = window.open(
+                url,
+                `ai_tool_${tool}`,
+                `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+            );
+
+            if (popup) {
+                openWindows[tool] = popup;
+                updateToolStatus(tool, true);
+
+                // Check periodically if window is closed
+                const checkClosed = setInterval(() => {
+                    if (popup.closed) {
+                        updateToolStatus(tool, false);
+                        clearInterval(checkClosed);
+                    }
+                }, 1000);
+            } else {
+                alert('Popup blocked! Please allow popups for this site, then try again.');
+            }
+        }
+
+        // Toggle Jasper sample panel
+        function toggleJasperSample() {
+            const panel = document.getElementById('jasper-sample');
+            panel.classList.toggle('visible');
+        }
+
+        // Update tool status badge
+        function updateToolStatus(tool, isOpen) {
+            const launcher = document.getElementById(`launcher-${tool}`);
+            const badge = document.getElementById(`status-${tool}`);
+            
+            if (isOpen) {
+                launcher.classList.add('active');
+                badge.textContent = '● Open';
+                badge.classList.add('open');
+            } else {
+                launcher.classList.remove('active');
+                badge.textContent = '';
+                badge.classList.remove('open');
+            }
+        }
+
+        // Progress and navigation
+        function updateProgress(step) {
+            document.querySelectorAll('.progress-step').forEach((el, idx) => {
+                el.classList.remove('active', 'completed');
+                if (idx + 1 < step) el.classList.add('completed');
+                if (idx + 1 === step) el.classList.add('active');
+            });
+        }
+
+        function nextTask(num) {
+            document.querySelectorAll('.task-card').forEach(c => c.classList.remove('active'));
+            document.getElementById(`task${num}`).classList.add('active');
+            updateProgress(num);
+            if (num === 5) generateSummary();
+            document.querySelector('.lab-panel').scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function prevTask(num) {
+            document.querySelectorAll('.task-card').forEach(c => c.classList.remove('active'));
+            document.getElementById(`task${num}`).classList.add('active');
+            updateProgress(num);
+            document.querySelector('.lab-panel').scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Copy prompt
+        function copyPrompt() {
+            const prompt = `Write a compelling real estate listing description for this property:
+
+• 742 Maple Street, Evansville, IN
+• $289,000 | 3 bed, 2 bath | 1,850 sq ft
+• Built 2018 | 0.25 acre lot
+• Features: Open floor plan, granite countertops, stainless steel appliances, hardwood floors, 2-car garage, fenced backyard
+• Near Wesselman Woods Nature Preserve
+
+Make it professional, engaging, and 100-150 words. Target audience: families looking for move-in ready homes.`;
+            
+            navigator.clipboard.writeText(prompt).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Copied!';
+                btn.style.background = '#10b981';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '';
+                }, 2000);
+            });
+        }
+
+        // Ratings
+        function setRating(category, value) {
+            ratings[category] = value;
+            const stars = document.querySelectorAll(`[data-rating="${category}"] .star`);
+            stars.forEach((star, idx) => {
+                star.classList.toggle('active', idx < value);
+            });
+        }
+
+        // Tool selection
+        function selectTool(el, tool) {
+            document.querySelectorAll('.tool-card-select').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedTool = tool;
+        }
+
+        function getToolName(tool) {
+            const names = {
+                'chatgpt': 'ChatGPT',
+                'claude': 'Claude',
+                'jasper': 'Jasper',
+                'copyai': 'Copy.ai'
+            };
+            return names[tool] || tool;
+        }
+
+        function getToolBudgetStatus(tool) {
+            if (tool === 'jasper') return '⚠️ OVER BUDGET';
+            return '✅ Within Budget';
+        }
+
+        // Summary
+        function generateSummary() {
+            const summary = document.getElementById('final-summary');
+            const avgRating = ((ratings.quality + ratings.accuracy + ratings.ease + ratings.usability) / 4).toFixed(1);
+            
+            summary.innerHTML = `
+                <p><strong>Problem:</strong> ${document.getElementById('problem-statement').value || '(Not provided)'}</p>
+                <p><strong>Tools Tested:</strong> ${document.getElementById('tools-tested').value || '(Not provided)'}</p>
+                <p><strong>Avg Rating:</strong> ${avgRating}/5 ⭐</p>
+                <p><strong>Recommendation:</strong> ${getToolName(selectedTool)} <span style="font-size: 0.75rem;">(${getToolBudgetStatus(selectedTool)})</span></p>
+            `;
+        }
+
+        // Download report
+        function downloadReport() {
+            const avgRating = ((ratings.quality + ratings.accuracy + ratings.ease + ratings.usability) / 4).toFixed(1);
+            const budgetStatus = getToolBudgetStatus(selectedTool);
+            
+            const report = `
+╔══════════════════════════════════════════════════════════════════╗
+║         BUS 380 - WEEK 8: AI TOOL SELECTION LAB REPORT           ║
+╚══════════════════════════════════════════════════════════════════╝
+
+SCENARIO: Riverside Realty - Property Listing Descriptions
+BUDGET CONSTRAINT: $0-50/month for 15 agents
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+═══════════════════════════════════════════════════════════════════
+TASK 1: PROBLEM STATEMENT
+═══════════════════════════════════════════════════════════════════
+${document.getElementById('problem-statement').value || '(Not provided)'}
+
+═══════════════════════════════════════════════════════════════════
+TASK 2: AI TESTING
+═══════════════════════════════════════════════════════════════════
+Tools Tested: ${document.getElementById('tools-tested').value || '(Not provided)'}
+
+AI-Generated Output:
+${document.getElementById('ai-output').value || '(Not provided)'}
+
+═══════════════════════════════════════════════════════════════════
+TASK 3: EVALUATION
+═══════════════════════════════════════════════════════════════════
+Quality:    ${'⭐'.repeat(ratings.quality)}${'☆'.repeat(5-ratings.quality)} (${ratings.quality}/5)
+Accuracy:   ${'⭐'.repeat(ratings.accuracy)}${'☆'.repeat(5-ratings.accuracy)} (${ratings.accuracy}/5)
+Ease:       ${'⭐'.repeat(ratings.ease)}${'☆'.repeat(5-ratings.ease)} (${ratings.ease}/5)
+Would Use:  ${'⭐'.repeat(ratings.usability)}${'☆'.repeat(5-ratings.usability)} (${ratings.usability}/5)
+
+AVERAGE: ${avgRating}/5
+
+Edits Needed: ${document.getElementById('edits-needed').value || '(Not provided)'}
+
+═══════════════════════════════════════════════════════════════════
+TASK 4: RECOMMENDATION
+═══════════════════════════════════════════════════════════════════
+RECOMMENDED TOOL: ${getToolName(selectedTool)}
+BUDGET STATUS: ${budgetStatus}
+
+Justification (WHAT Framework):
+${document.getElementById('recommendation-why').value || '(Not provided)'}
+
+Risk/Limitation:
+${document.getElementById('recommendation-risk').value || '(Not provided)'}
+
+═══════════════════════════════════════════════════════════════════
+TASK 5: REFLECTION
+═══════════════════════════════════════════════════════════════════
+${document.getElementById('reflection').value || '(Not provided)'}
+
+═══════════════════════════════════════════════════════════════════
+TOOL COMPARISON REFERENCE
+═══════════════════════════════════════════════════════════════════
+Tool        | Type       | Free Tier | Paid      | Fits Budget?
+------------|------------|-----------|-----------|-------------
+Claude      | General    | Yes       | $20/mo    | ✅ Yes
+ChatGPT     | General    | Yes       | $20/mo    | ✅ Yes
+Copy.ai     | Marketing  | Yes       | $36/mo    | ✅ Yes
+Jasper      | Marketing  | No        | $49+/user | ❌ No ($735/mo for 15 users)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+"THINK BEFORE YOU TOOL" FRAMEWORK APPLIED:
+✓ WHY:   Agents spending too much time writing descriptions
+✓ WHERE: The listing description writing step  
+✓ WHAT:  ${getToolName(selectedTool)} (justified above)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Submitted: ${new Date().toLocaleString()}
+BUS 380: Generative AI for Business Students | University of Evansville
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+`;
+
+            const blob = new Blob([report], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Week8-AI-Tool-Selection-Lab.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            alert('✅ Report downloaded! Upload this to Blackboard.');
+        }
+    </script>
+</body>
+</html>
