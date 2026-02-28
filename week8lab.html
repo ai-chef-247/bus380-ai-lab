@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Week 8: The AI Audit | BUS 380</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+            min-height: 100vh;
+            color: #1f2937;
+        }
+
+        /* Password Overlay */
+        .password-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .password-box {
+            background: white;
+            border-radius: 16px;
+            padding: 32px 40px;
+            text-align: center;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+            max-width: 420px;
+            width: 90%;
+        }
+
+        .password-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .ue-badge {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .password-header-text h2 {
+            color: #1f2937;
+            margin: 0;
+            font-size: 1.4rem;
+            text-align: left;
+        }
+
+        .password-header-text p {
+            color: #6b7280;
+            margin: 4px 0 0 0;
+            font-size: 0.85rem;
+            text-align: left;
+        }
+
+        .password-field {
+            text-align: left;
+            margin-bottom: 16px;
+        }
+
+        .password-field label {
+            display: block;
+            color: #374151;
+            font-weight: 500;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .password-box input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .password-box input:focus {
+            outline: none;
+            border-color: #9333ea;
+            box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
+        }
+
+        .password-box button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 16px;
+        }
+
+        .password-box button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(147, 51, 234, 0.4);
+        }
+
+        .password-help {
+            font-size: 0.8rem;
+            color: #9ca3af;
+        }
+
+        .password-error {
+            color: #dc2626;
+            font-size: 0.85rem;
+            margin-top: 12px;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 30px 20px;
+            color: white;
+        }
+
+        .header-badge {
+            display: inline-block;
+            background: rgba(245, 158, 11, 0.3);
+            border: 1px solid #f59e0b;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fde68a;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1rem;
+            color: #c4b5fd;
+        }
+
+        /* Scenario Card */
+        .scenario-card {
+            background: white;
+            border-radius: 20px;
+            padding: 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+
+        .scenario-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .scenario-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+        }
+
+        .scenario-header h2 {
+            font-size: 1.4rem;
+            color: #1f2937;
+        }
+
+        .scenario-header p {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .scenario-text {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            border-radius: 0 12px 12px 0;
+        }
+
+        .scenario-text p {
+            color: #78350f;
+            line-height: 1.7;
+            font-size: 0.95rem;
+        }
+
+        /* Framework Reference */
+        .framework-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .framework-card h3 {
+            color: #5b21b6;
+            margin-bottom: 16px;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .framework-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .framework-option {
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 2px solid #e5e7eb;
+        }
+
+        .framework-option .icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .framework-option h4 {
+            font-size: 0.9rem;
+            color: #1f2937;
+            margin-bottom: 6px;
+        }
+
+        .framework-option p {
+            font-size: 0.75rem;
+            color: #6b7280;
+            line-height: 1.4;
+        }
+
+        /* Task Cards */
+        .task-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .task-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .task-number {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .task-header h3 {
+            color: #1f2937;
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+
+        .task-header p {
+            color: #6b7280;
+            font-size: 0.8rem;
+        }
+
+        .task-description {
+            background: #f9fafb;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 16px;
+            font-size: 0.9rem;
+            color: #374151;
+            line-height: 1.6;
+        }
+
+        /* Choice Buttons */
+        .choice-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .choice-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .choice-btn {
+            padding: 16px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .choice-btn:hover {
+            border-color: #7c3aed;
+            background: #faf5ff;
+        }
+
+        .choice-btn.selected {
+            border-color: #7c3aed;
+            background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+        }
+
+        .choice-btn .choice-icon {
+            font-size: 28px;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .choice-btn .choice-text {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #374151;
+            line-height: 1.3;
+        }
+
+        /* Justification */
+        .justify-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .justify-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            resize: none;
+            height: 70px;
+        }
+
+        .justify-input:focus {
+            outline: none;
+            border-color: #7c3aed;
+        }
+
+        .justify-hint {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            margin-top: 4px;
+        }
+
+        /* Submit Section */
+        .submit-card {
+            background: white;
+            border-radius: 16px;
+            padding: 28px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .submit-card h3 {
+            color: #1f2937;
+            margin-bottom: 8px;
+            font-size: 1.2rem;
+        }
+
+        .submit-card p {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .submit-btn {
+            padding: 16px 48px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: rgba(255,255,255,0.5);
+            font-size: 0.8rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .framework-options, .choice-options {
+                grid-template-columns: 1fr;
+            }
+            .header h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Password Overlay -->
+    <div class="password-overlay" id="passwordOverlay">
+        <div class="password-box">
+            <div class="password-header">
+                <div class="ue-badge">UE</div>
+                <div class="password-header-text">
+                    <h2>Course Access</h2>
+                    <p>Enter the course password to open this lab.</p>
+                </div>
+            </div>
+            <div class="password-field">
+                <label>Course Password</label>
+                <input type="password" id="passwordInput" placeholder="Enter password" onkeypress="checkEnter(event)">
+            </div>
+            <button onclick="checkPassword()">Unlock Lab</button>
+            <p class="password-help">If you don't have the password, contact your instructor.</p>
+            <p class="password-error" id="passwordError"></p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <span class="header-badge">🧪 WEEK 8 LAB</span>
+            <h1>The AI Audit</h1>
+            <p>Apply the AI Decision Framework to real business tasks</p>
+        </div>
+
+        <!-- Scenario -->
+        <div class="scenario-card">
+            <div class="scenario-header">
+                <div class="scenario-icon">🏪</div>
+                <div>
+                    <h2>Your Scenario</h2>
+                    <p>You're the manager of a local Evansville retail store</p>
+                </div>
+            </div>
+
+            <div class="scenario-text">
+                <p>Congratulations! You've just been promoted to <strong>Store Manager</strong> at <strong>Evansville Essentials</strong>, a local retail store on the East Side.</p>
+                <p style="margin-top: 10px;">Your regional director wants you to <strong>"audit"</strong> three upcoming tasks and recommend the best approach for each. For each task, decide: Should we use <strong>Generative AI</strong>, <strong>Automation/Analytics</strong>, or keep it <strong>Human Only</strong>?</p>
+            </div>
+        </div>
+
+        <!-- Framework Reference -->
+        <div class="framework-card">
+            <h3>📋 The AI Decision Framework (from Monday's reading)</h3>
+            <div class="framework-options">
+                <div class="framework-option">
+                    <div class="icon">🤖</div>
+                    <h4>Generative AI</h4>
+                    <p>Creating content, writing, brainstorming, summarizing</p>
+                </div>
+                <div class="framework-option">
+                    <div class="icon">📊</div>
+                    <h4>Automation & Analytics</h4>
+                    <p>Calculations, predictions from data, following rules</p>
+                </div>
+                <div class="framework-option">
+                    <div class="icon">👤</div>
+                    <h4>Human Only</h4>
+                    <p>Decisions about people, ethics, relationships, high stakes</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Task 1 -->
+        <div class="task-card">
+            <div class="task-header">
+                <div class="task-number">1</div>
+                <div>
+                    <h3>Predict Next Month's Electricity Bill</h3>
+                    <p>Budget planning request from regional office</p>
+                </div>
+            </div>
+
+            <div class="task-description">
+                Your store has <strong>5 years of monthly electricity bills</strong> saved in a spreadsheet. The regional office wants you to estimate next month's bill for budget planning. The data shows clear seasonal patterns (higher in summer due to AC, lower in spring/fall).
+            </div>
+
+            <label class="choice-label">What's the best approach?</label>
+            <div class="choice-options">
+                <div class="choice-btn" onclick="selectChoice(1, 'genai', this)">
+                    <span class="choice-icon">🤖</span>
+                    <span class="choice-text">Generative AI</span>
+                </div>
+                <div class="choice-btn" onclick="selectChoice(1, 'automation', this)">
+                    <span class="choice-icon">📊</span>
+                    <span class="choice-text">Automation & Analytics</span>
+                </div>
+                <div class="choice-btn" onclick="selectChoice(1, 'human', this)">
+                    <span class="choice-icon">👤</span>
+                    <span class="choice-text">Human Only</span>
+                </div>
+            </div>
+
+            <label class="justify-label">Justify your choice in one sentence:</label>
+            <textarea class="justify-input" id="justify1" placeholder="Why is this the best approach for this task?"></textarea>
+            <p class="justify-hint">Tip: Reference the 3-step framework from Monday's reading</p>
+        </div>
+
+        <!-- Task 2 -->
+        <div class="task-card">
+            <div class="task-header">
+                <div class="task-number">2</div>
+                <div>
+                    <h3>Write an Apology Email to a Customer</h3>
+                    <p>Customer service recovery situation</p>
+                </div>
+            </div>
+
+            <div class="task-description">
+                A regular customer, <strong>Mrs. Johnson</strong>, ordered a birthday gift for her grandson online for in-store pickup. Due to a system error, the order was <strong>lost and never arrived</strong>. She's understandably upset. You need to write a polite, empathetic email apologizing and offering to make it right.
+            </div>
+
+            <label class="choice-label">What's the best approach?</label>
+            <div class="choice-options">
+                <div class="choice-btn" onclick="selectChoice(2, 'genai', this)">
+                    <span class="choice-icon">🤖</span>
+                    <span class="choice-text">Generative AI</span>
+                </div>
+                <div class="choice-btn" onclick="selectChoice(2, 'automation', this)">
+                    <span class="choice-icon">📊</span>
+                    <span class="choice-text">Automation & Analytics</span>
+                </div>
+                <div class="choice-btn" onclick="selectChoice(2, 'human', this)">
+                    <span class="choice-icon">👤</span>
+                    <span class="choice-text">Human Only</span>
+                </div>
+            </div>
+
+            <label class="justify-label">Justify your choice in one sentence:</label>
+            <textarea class="justify-input" id="justify2" placeholder="Why is this the best approach for this task?"></textarea>
+            <p class="justify-hint">Tip: Consider — is this a "create content" task? Can a human verify the output?</p>
+        </div>
+
+        <!-- Task 3 -->
+        <div class="task-card">
+            <div class="task-header">
+                <div class="task-number">3</div>
+                <div>
+                    <h3>Decide Which Employee to Promote</h3>
+                    <p>Assistant Manager position available</p>
+                </div>
+            </div>
+
+            <div class="task-description">
+                You have an <strong>Assistant Manager position</strong> to fill. Two employees have applied: <strong>Marcus</strong>, who has been with the store for 3 years and is reliable but quiet, and <strong>Jasmine</strong>, who joined 18 months ago but has shown strong leadership in team projects. Both are qualified. You need to decide who gets the promotion.
+            </div>
+
+            <label class="choice-label">What's the best approach?</label>
+            <div class="choice-options">
+                <div class="choice-btn" onclick="selectChoice(3, 'genai', this)">
+                    <span class="choice-icon">🤖</span>
+                    <span class="choice-text">Generative AI</span>
+                </div>
+                <div class="choice-btn" onclick="selectChoice(3, 'automation', this)">
+                    <span class="choice-icon">📊</span>
+                    <span class="choice-text">Automation & Analytics</span>
+                </div>
+                <div class="choice-btn" onclick="selectChoice(3, 'human', this)">
+                    <span class="choice-icon">👤</span>
+                    <span class="choice-text">Human Only</span>
+                </div>
+            </div>
+
+            <label class="justify-label">Justify your choice in one sentence:</label>
+            <textarea class="justify-input" id="justify3" placeholder="Why is this the best approach for this task?"></textarea>
+            <p class="justify-hint">Tip: What's at stake? Who is affected by this decision?</p>
+        </div>
+
+        <!-- Submit -->
+        <div class="submit-card">
+            <h3>📥 Ready to Submit?</h3>
+            <p>Make sure you've selected an approach and written a justification for all 3 tasks.</p>
+            <button class="submit-btn" onclick="downloadReport()">Download Lab Report</button>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            BUS 380: Generative AI for Business Students | University of Evansville<br>
+            Have a great Spring Break! 🌴
+        </div>
+    </div>
+
+    <script>
+        // Track selections
+        let selections = { 1: null, 2: null, 3: null };
+
+        // Password check
+        function checkPassword() {
+            const input = document.getElementById('passwordInput').value;
+            const error = document.getElementById('passwordError');
+            
+            if (input.toLowerCase() === 'evansville') {
+                document.getElementById('passwordOverlay').style.display = 'none';
+            } else {
+                error.textContent = 'Incorrect password. Please try again.';
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('passwordInput').focus();
+            }
+        }
+
+        function checkEnter(event) {
+            if (event.key === 'Enter') {
+                checkPassword();
+            }
+        }
+
+        window.onload = function() {
+            document.getElementById('passwordInput').focus();
+        };
+
+        // Select choice
+        function selectChoice(taskNum, choice, element) {
+            const siblings = element.parentElement.querySelectorAll('.choice-btn');
+            siblings.forEach(btn => btn.classList.remove('selected'));
+            element.classList.add('selected');
+            selections[taskNum] = choice;
+        }
+
+        function getChoiceLabel(choice) {
+            const labels = {
+                'genai': '🤖 Generative AI',
+                'automation': '📊 Automation & Analytics',
+                'human': '👤 Human Only'
+            };
+            return labels[choice] || choice;
+        }
+
+        // Download report
+        function downloadReport() {
+            if (!selections[1] || !selections[2] || !selections[3]) {
+                alert('Please select an approach for all 3 tasks before submitting.');
+                return;
+            }
+
+            const j1 = document.getElementById('justify1').value.trim();
+            const j2 = document.getElementById('justify2').value.trim();
+            const j3 = document.getElementById('justify3').value.trim();
+
+            if (!j1 || !j2 || !j3) {
+                alert('Please write a justification for all 3 tasks before submitting.');
+                return;
+            }
+
+            const report = `
+╔══════════════════════════════════════════════════════════════════╗
+║              BUS 380 - WEEK 8: THE AI AUDIT LAB                  ║
+║                   AI Decision Framework                           ║
+╚══════════════════════════════════════════════════════════════════╝
+
+SCENARIO: Store Manager at Evansville Essentials
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+═══════════════════════════════════════════════════════════════════
+TASK 1: Predict Next Month's Electricity Bill
+═══════════════════════════════════════════════════════════════════
+Context: 5 years of monthly electricity data in a spreadsheet.
+         Regional office needs estimate for budget planning.
+
+MY CHOICE: ${getChoiceLabel(selections[1])}
+
+MY JUSTIFICATION:
+${j1}
+
+═══════════════════════════════════════════════════════════════════
+TASK 2: Write an Apology Email to a Customer
+═══════════════════════════════════════════════════════════════════
+Context: Regular customer's order was lost. She is upset.
+         Need polite, empathetic email to make things right.
+
+MY CHOICE: ${getChoiceLabel(selections[2])}
+
+MY JUSTIFICATION:
+${j2}
+
+═══════════════════════════════════════════════════════════════════
+TASK 3: Decide Which Employee to Promote
+═══════════════════════════════════════════════════════════════════
+Context: Two qualified candidates for Assistant Manager.
+         Marcus (3 years, reliable) vs Jasmine (18 months, strong leader).
+
+MY CHOICE: ${getChoiceLabel(selections[3])}
+
+MY JUSTIFICATION:
+${j3}
+
+═══════════════════════════════════════════════════════════════════
+AI DECISION FRAMEWORK REFERENCE
+═══════════════════════════════════════════════════════════════════
+
+The 3-Step Framework:
+  1. What TYPE of task? (Create, Calculate, or Decide about people?)
+  2. What's the RISK if it's wrong?
+  3. Can a HUMAN VERIFY the output?
+
+The 3 Options:
+  🤖 GENERATIVE AI    → Creating content, writing, brainstorming
+  📊 AUTOMATION       → Calculations, predictions from data, rules
+  👤 HUMAN ONLY       → People decisions, ethics, high stakes
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Submitted: ${new Date().toLocaleString()}
+BUS 380: Generative AI for Business Students | University of Evansville
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+`;
+
+            const blob = new Blob([report], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Week8-AI-Audit-Lab.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            alert('✅ Lab report downloaded! Upload this to Blackboard.\n\nHave a great Spring Break! 🌴');
+        }
+    </script>
+</body>
+</html>
